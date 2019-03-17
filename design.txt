@@ -1,0 +1,7 @@
+1. Teacher Recruitment: gain X new teachers from the teacher pool. Replenish the teacher pool depending on number of open building slots. Move any teachers around at will.
+2. Build: build a building from the pool, or upgrade your HQ. Click an empty building spot to show a Modal of what can be built there.
+3. Produce: generate graduates of types you can produce. The economy can only support a max of a certain type, so you must choose what to produce. 
+4. Graduate: send graduates into the economy via the job slots. If the economy doesn't have room for the graduates, you discard all but 1. Score a point for each graduate placed successfully in a job. Modal shows the job slots available. Slots are only emptied when full.
+5. Fundraise: shake down your graduates for money. Fundraising gala can't hold more than 1 of each type of graduate, and empties when full.
+6. Collect Interest: Collect interest on your endowment. Gain 1 money.
+7. Student Recruitment: add new tiles to your student field. Modal shows which are available.
