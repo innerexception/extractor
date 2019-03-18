@@ -33,8 +33,14 @@ export default class Match extends React.Component {
                 <h4>{activePlayer.name}</h4>
                 {activePlayer.id !== this.props.currentUser.id && <div style={styles.disabled}/>}
                 <div style={{display:'flex'}}>
-                    {renderCampus(activePlayer)}
-                    {renderStudentBody(activePlayer)}
+                    <Campus player={activePlayer} 
+                            onShowBuildingSelect 
+                            onTeacherSelected
+                            isActive={this.props.activeSession.phase === Constants.Phases.BUILD}/>
+                    <StudentBody player={activePlayer} 
+                                 onTeacherSelected
+                                 isActive={this.props.activeSession.phase === Constants.Phases.RECRUIT_STUDENT}/>
+                                 onShowStudentSelect/>
                     <div style={styles.roleCard}>
                         <h4>{activePlayer.role.name}</h4>
                         <hr/>
@@ -44,11 +50,15 @@ export default class Match extends React.Component {
                     <div>
                         <h5>VP: {activePlayer.vp}</h5>
                         <h5>$: {activePlayer.money}</h5>
-                        {activePlayer.resources.map((resource) => <h5>{resource.type} : {resource.count}</h5>)}
+                        {activePlayer.resources.map((resource) => 
+                            <div style={this.props.activeSession.phase === Constants.Phases.PRODUCE ? styles.active : styles.disabled}>
+                                <div onClick={onProduceResourceType(resource)}/>
+                                <h5>{resource.type} : {resource.count}</h5>
+                            </div>)}
                     </div>
                     <div style={styles.choiceBtn} onClick={this.endTurn}>End Turn</div>
                     <div style={{marginTop:'0.5em', marginBottom:'0.5em'}}>
-                        <h6 style={{margin:0}}>Time</h6>
+                        <h6 style={{margin:0}}>Turn</h6>
                         <div style={{width: '100%', height:'0.5em', border: '1px solid'}}>
                             <div style={{width: (100-((this.props.activeSession.ticks / this.props.activeSession.tickLimit)*100))+'%', background:'orange', height:'100%', transition:'width 250ms'}}/>
                         </div>
