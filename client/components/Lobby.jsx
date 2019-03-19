@@ -4,14 +4,15 @@ import { onMatchStart } from './uiManager/Thunks.js'
 export default class Lobby extends React.Component {
 
     startMatch = () => {
+        console.log(this.props)
         onMatchStart(
-            this.props.activeSession.sessionName, 
             this.props.currentUser, 
+            this.props.activeSession.sessionId, 
             this.props.server)
     }
 
     getErrors = () => {
-        if(this.props.activeSession.players.length < 2) return 'Waiting for more employees to join...'
+        if(this.props.activeSession.players.length < 2) return 'Waiting for more to join...'
     }
 
     render(){

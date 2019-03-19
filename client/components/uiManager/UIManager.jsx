@@ -1,7 +1,7 @@
 import React from 'react';
 import Lobby from '../Lobby.jsx'
 import Match from '../match/Match.jsx'
-import Login from '../login/Login.jsx'
+import Login from '../Login.jsx'
 
 export default class UIManager extends React.Component {
 
@@ -14,10 +14,10 @@ export default class UIManager extends React.Component {
             return <Login {...this.props}/>
         }
         else {
-            if(this.props.activeSession && !this.props.activeSession.status){
+            if(this.props.activeSession && !this.props.activeSession.session.status){
                 return <Lobby {...this.props}/>
             }
-            if(this.props.activeSession && this.props.activeSession.status){
+            if(this.props.activeSession && this.props.activeSession.session.status){
                 return <Match {...this.props}/>
             }
         }

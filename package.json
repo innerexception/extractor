@@ -16,6 +16,7 @@
     ]
   },
   "dependencies": {
+    "@blueprintjs/core": "^3.14.1",
     "babel-loader": "^8.0.5",
     "babel-polyfill": "^6.26.0",
     "css-loader": "^2.1.0",

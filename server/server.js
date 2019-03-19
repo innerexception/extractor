@@ -43,7 +43,7 @@ wsServer.on('request', function(request) {
   connection.on('message', function(message) {
     if (message.type === 'utf8') { // accept only text
         var obj = JSON.parse(message.utf8Data)
-        var targetSession = sessions[obj.sessionName]
+        var targetSession = sessions[obj.sessionId]
         if(!targetSession && obj.type !== Constants.MATCH_AVAILABLE) return
         switch(obj.type){
           case Constants.MATCH_AVAILABLE:
@@ -53,19 +53,19 @@ wsServer.on('request', function(request) {
             else{
               targetSession = {
                 players: [{...obj.currentUser, socket: connection}], 
-                session: {...obj.session}
+                session: {...obj.session, sessionId: Date.now()+''+Math.random()}
               }
-              console.log('created session '+obj.sessionName)
+              console.log('created new session.')
             }
             break
           case Constants.MATCH_UPDATE:
-            targetSession.session = {...obj.session}
+            targetSession.session = {...targetSession.session, ...obj.session}
             break
         }
-        sessions[obj.sessionName] = targetSession
+        sessions[obj.sessionId] = targetSession
         publishSessionUpdate(targetSession)
-        if(targetSession.status === MatchStatus.LOST){
-          delete sessions[obj.sessionName]
+        if(targetSession.session.status === MatchStatus.LOST){
+          delete sessions[targetSession.sessionId]
         }
     }
   });
@@ -74,8 +74,8 @@ wsServer.on('request', function(request) {
   connection.on('close', (code) => {
       console.log((new Date()) + "A Peer disconnected.");
       // remove user from the list of connected clients
-      var sessionNames = Object.keys(sessions)
-      sessionNames.forEach((name) => {
+      var sessionIds = Object.keys(sessions)
+      sessionIds.forEach((name) => {
         let session = sessions[name]
         let player = session.players.find((player) => player.socket.id === socketId)
         if(player){
@@ -94,7 +94,8 @@ wsServer.on('request', function(request) {
 });
 
 const publishSessionUpdate = (targetSession) => {
-  var message = getSessionUpdateMessage(targetSession)
+  let cleanedPlayers = targetSession.players.map((player) => ({...player, socket:null}))
+  var message = getSessionUpdateMessage({...targetSession, players: cleanedPlayers})
   // broadcast message to clients of session
   var json = JSON.stringify({ type:'message', data: message });
   targetSession.players.forEach((player) => {

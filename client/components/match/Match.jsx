@@ -1,6 +1,9 @@
 import React from 'react';
-import { onMatchTick, onPlaceTeacher, onPlaceGraduate, onShipGraduates, onSellGraduates, onGetGraduates, onBuild, onGetTile, onPickRole } from '../uiManager/Thunks.js'
-import Constants from '../../../Constants'
+import { onMatchTick, onPlaceTeacher, onPlaceGraduate, onShipGraduates, onSellGraduates, onGetGraduates, onBuild, onGetTile, onChooseRole } from '../uiManager/Thunks.js'
+import { Button, Card, Dialog, Tooltip, Position, Icon, Radio, RadioGroup, Popover } from '@blueprintjs/core'
+import Constants from '../../../Constants.js'
+import Campus from './Campus.jsx'
+import StudentBody from './StudentBody.jsx'
 
 export default class Match extends React.Component {
 
@@ -12,6 +15,11 @@ export default class Match extends React.Component {
         this.setState({interval: this.state.isActive && setInterval(()=>this.checkTimer(), 1000)})
     }
 
+    dropTeacher = (board, x, y) => {
+        onPlaceTeacher(this.state.draggingTeacher, board, x, y)
+        this.setState({draggingTeacher: null})
+    }
+                            
     endTurn = () => {
         clearInterval(this.state.interval)
         onEndTurn(this.props.activeSession.sessionName, this.props.server)
@@ -34,13 +42,14 @@ export default class Match extends React.Component {
                 {activePlayer.id !== this.props.currentUser.id && <div style={styles.disabled}/>}
                 <div style={{display:'flex'}}>
                     <Campus player={activePlayer} 
-                            onShowBuildingSelect 
-                            onTeacherSelected
+                            onShowBuildingSelect={(x,y)=>this.setState({showBuildingModal: true, buildX:x, buildY:y })}
+                            onTeacherSelected={(teacher)=>this.setState({draggingTeacher: teacher})}
+                            onDropTeacher={(board, x, y)=>this.dropTeacher(board, x, y)}
                             isActive={this.props.activeSession.phase === Constants.Phases.BUILD}/>
                     <StudentBody player={activePlayer} 
-                                 onTeacherSelected
+                                 onTeacherSelected={(teacher)=>this.setState({draggingTeacher: teacher})}
+                                 onDropTeacher={(board, x, y)=>this.dropTeacher(board, x, y)}
                                  isActive={this.props.activeSession.phase === Constants.Phases.RECRUIT_STUDENT}/>
-                                 onShowStudentSelect/>
                     <div style={styles.roleCard}>
                         <h4>{activePlayer.role.name}</h4>
                         <hr/>
@@ -71,12 +80,22 @@ export default class Match extends React.Component {
                     <div>Show/Hide Student Tiles</div>
                     <div>Show/Hide Fundraising</div>
                 </div>
-                <Modal>Choose Role</Modal>
-                <Modal>Build</Modal>
-                <Modal>Available Graduates</Modal>
-                <Modal>Next Student Tiles</Modal>
-                <Modal>Industry Job Slots</Modal>
-                <Modal>Fundraising</Modal>
+                <Dialog
+                    isOpen={this.state.showChooseRoles}
+                    style={styles.modal}
+                    onClose={() => this.setState({ showChooseRoles: false })}
+                >
+                    {Constants.Roles.map((role) => <Button text={role} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession, this.props.server)}/>)}
+                </Dialog>
+                <Dialog
+                    isOpen={this.state.showChooseRoles}
+                    style={styles.modal}
+                    onClose={() => this.setState({ showChooseRoles: false })}
+                >Build</Dialog>
+                <Dialog>Available Graduates</Dialog>
+                <Dialog>Next Student Tiles</Dialog>
+                <Dialog>Industry Job Slots</Dialog>
+                <Dialog>Fundraising</Dialog>
             </div>
         )
     }

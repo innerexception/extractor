@@ -8,7 +8,7 @@ module.exports = {
         filename: 'bundle.js',
         publicPath: '/',
     },
-    devtool: false,
+    devtool: 'source-map',
     module: {
         rules: [{
                 test: /\.css$/,

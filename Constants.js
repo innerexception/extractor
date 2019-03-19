@@ -1,5 +1,5 @@
 module.exports = {
-  ApiUrl: 'ws://ec2-35-172-141-166.compute-1.amazonaws.com:1337',
+  ApiUrl: 'ws://localhost:1337',
 
   ReducerActions: {
     MATCH_AVAILABLE: 'ma',
@@ -22,42 +22,28 @@ module.exports = {
     SET_USER: 'su'
   },
 
+  Phases: {
+    CHOOSE_ROLES: 'CHOOSE_ROLES',
+    BUILD:'BUILD',
+    RECRUIT_TEACHERS:'RECRUIT_TEACHERS',
+    RECRUIT_STUDENTS:'RECRUIT_STUDENTS',
+    FUNDRAISE:'FUNDRAISE',
+    PRODUCE:'PRODUCE',
+    PLACE_GRADUATES:'PLACE_GRADUATES',
+  },
+
+  Roles: [
+    'BUILD',
+    'RECRUIT_TEACHERS',
+    'RECRUIT_STUDENTS',
+    'FUNDRAISE',
+    'PRODUCE',
+    'PLACE_GRADUATES',
+  ],
+
   MatchStatus: {
     ACTIVE: 'aa',
     LOST: 'll',
     WIN: 'win'
-  },
-
-  Phrases: [
-    'Synergize the paradigm',
-    'Drive value',
-    'Operationalize the strategy',
-    'Leverage our core compentencies',
-    'Wholeistically administrate exceptional synergy',
-    'Set the brand trajectory',
-    'Advance the marketshare',
-    'Promote viability and diversity in the supply chain',
-    'Monetize our assets',
-    'Visualize a value added experience',
-    'Perform seamless cross-platform integrations',
-    'Gain traction with our capitalized reputation in the marketplace',
-    'Incentivize mission critical behaviors',
-    'Implement flexible solutions for the customer base',
-    'Take this conversation offline',
-    'Execute opportunistic strategies',
-    'Empower the product swimlanes',
-    'Increase our share of wallet',
-    'Activate thought leadership',
-    'Form some tiger teams',
-    'Fix the verbage in out takeaway',
-    'Implement robust solutioning',
-    'Hit the ground running with content marketing',
-    'Hold the fort for a come to jesus moment',
-    'Peel the onion to put this one to bed',
-    'Pipeline our total quality takeaway',
-    'Throw thought leadership over the wall',
-    'Try proactive price point onboarding',
-    'Manage the low hanging fruit',
-    'Leverage our learnings to punch a puppy'
-  ]
+  }
 };
