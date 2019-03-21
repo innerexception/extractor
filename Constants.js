@@ -30,15 +30,99 @@ module.exports = {
     FUNDRAISE:'FUNDRAISE',
     PRODUCE:'PRODUCE',
     PLACE_GRADUATES:'PLACE_GRADUATES',
+    COLLECT_INTEREST:'INTEREST'
   },
 
+  GraduateTypes: {
+    COMMUNICATIONS: 'com',
+    ENGLISH: 'eng',
+    COMPSCI: 'comp',
+    LAWYER: 'law',
+    DOCTOR: 'dr'
+  },
+  
+  BuildingsPool: [
+    {
+      name: 'English Department',
+      count: 3,
+      cost: 1
+    },
+    {
+      name: 'English Department (L)',
+      count: 3,
+      isLarge: true,
+      cost: 3
+    },
+    {
+      name: 'Computer Science Department',
+      count: 3,
+      cost: 3,
+    },
+    {
+      name: 'Computer Science Department (L)',
+      count: 3,
+      cost: 5,
+      isLarge: true
+    },
+    {
+      name: 'Law School',
+      count: 2,
+      cost: 6,
+      isLarge: true
+    },
+    {
+      name: 'Medical School',
+      count: 2,
+      cost: 7,
+      isLarge: true
+    },
+  ],
+  InitialPlayerBuildings: [[null, null, null],[null, null, null],[null, null, null]],
+  InitialPlayerStudents: [[null, null, null],[null, null, null],[null, null, null],[null, null, null]],
+
   Roles: [
-    'BUILD',
-    'RECRUIT_TEACHERS',
-    'RECRUIT_STUDENTS',
-    'FUNDRAISE',
-    'PRODUCE',
-    'PLACE_GRADUATES',
+    {
+      name: 'BUILD', 
+      readableName: 'Expand', 
+      actionDescription: 'Build a building on campus.', 
+      bonusDescription: 'Building costs 1 less.'
+    },
+    {
+      name: 'RECRUIT_TEACHERS', 
+      readableName: 'Recruit Teachers', 
+      actionDescription: 'Build a building on campus.', 
+      bonusDescription: 'Building costs 1 less.'
+    },
+    {
+      name: 'RECRUIT_STUDENTS', 
+      readableName: 'Recruit Students', 
+      actionDescription: 'Build a building on campus.', 
+      bonusDescription: 'Building costs 1 less.'
+    },
+    {
+      name: 'FUNDRAISE', 
+      readableName: 'Hold Fundraiser', 
+      actionDescription: 'Build a building on campus.',
+      bonusDescription: 'Building costs 1 less.'
+    },
+    {
+      name: 'PRODUCE', 
+      readableName: 'Produce Graduates',
+      actionDescription: 'Build a building on campus.', 
+      bonusDescription: 'Building costs 1 less.'
+    },
+    {
+      name: 'PLACE_GRADUATES', 
+      readableName: 'Place Graduates',
+      actionDescription: 'Build a building on campus.', 
+      bonusDescription: 'Building costs 1 less.'
+    },
+    {
+      name: 'INTEREST', 
+      readableName: 'Collect Interest',
+      actionDescription: 'Collect interest from the endowment.', 
+      bonusDescription: '----'
+    }
   ],
 
   MatchStatus: {

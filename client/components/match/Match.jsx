@@ -32,36 +32,46 @@ export default class Match extends React.Component {
         else onMatchTick(this.props.activeSession, this.props.server)
     }
 
+    roleNotPicked = (role) => {
+        const pickedRoles = this.props.activeSession.players.map((player) => player.role).filter((role) => role)
+        return !pickedRoles.find((prole) => prole.name === role)
+    }
+
     render(){
 
         const activePlayer = this.props.activeSession.players.find((player) => player.id === this.props.activeSession.activePlayerId)
+        const me = this.props.activeSession.players.find((player) => this.props.currentUser.id === player.id)
 
         return (
             <div style={styles.frame}>
-                <h4>{activePlayer.name}</h4>
+                <h4>{this.props.currentUser.name}</h4>
+                <h4>{activePlayer.name+ " is currently "+this.props.activeSession.phase}</h4>
                 {activePlayer.id !== this.props.currentUser.id && <div style={styles.disabled}/>}
                 <div style={{display:'flex'}}>
-                    <Campus player={activePlayer} 
-                            onShowBuildingSelect={(x,y)=>this.setState({showBuildingModal: true, buildX:x, buildY:y })}
+                    <Campus player={me} 
+                            activeSession={this.props.activeSession}
                             onTeacherSelected={(teacher)=>this.setState({draggingTeacher: teacher})}
+                            server={this.props.server}
                             onDropTeacher={(board, x, y)=>this.dropTeacher(board, x, y)}
-                            isActive={this.props.activeSession.phase === Constants.Phases.BUILD}/>
-                    <StudentBody player={activePlayer} 
+                            showBuildings={this.state.showBuildings}
+                            isActive={this.props.activeSession.phase === Constants.Phases.BUILD && activePlayer.id === me.id}/>
+                    <StudentBody player={me} 
+                                 server={this.props.server}
                                  onTeacherSelected={(teacher)=>this.setState({draggingTeacher: teacher})}
                                  onDropTeacher={(board, x, y)=>this.dropTeacher(board, x, y)}
-                                 isActive={this.props.activeSession.phase === Constants.Phases.RECRUIT_STUDENT}/>
-                    {activePlayer.role ? 
+                                 isActive={this.props.activeSession.phase === Constants.Phases.RECRUIT_STUDENT && activePlayer.id === me.id}/>
+                    {me.role ? 
                         <div style={styles.roleCard}>
-                            <h4>{activePlayer.role}</h4>
+                            <h4>{me.role.readableName}</h4>
                             <hr/>
-                            <h5>{role.actionDescription}</h5>
-                            <h5>{role.bonusDescription}</h5>
+                            <h5>{me.role.actionDescription}</h5>
+                            <h5>{me.role.bonusDescription}</h5>
                         </div> : 
                         <div>no role yet</div>}
                     <div>
-                        <h5>VP: {activePlayer.vp}</h5>
-                        <h5>$: {activePlayer.money}</h5>
-                        {activePlayer.resources.map((resource) => 
+                        <h5>VP: {me.vp}</h5>
+                        <h5>$: {me.money}</h5>
+                        {me.resources.map((resource) => 
                             <div style={this.props.activeSession.phase === Constants.Phases.PRODUCE ? styles.active : styles.disabled}>
                                 <div onClick={onProduceResourceType(resource)}/>
                                 <h5>{resource.type} : {resource.count}</h5>
@@ -87,13 +97,17 @@ export default class Match extends React.Component {
                     style={styles.modal}
                     onClose={() => this.setState({ showChooseRoles: false })}
                 >
-                    {Constants.Roles.map((role) => <div style={styles.toggleButton} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession, this.props.server)}>{role}</div>)}
+                    <div style={{display:'flex'}}>
+                        <div>
+                            {activePlayer.name + ' is picking...'}
+                            {this.props.activeSession.players.filter((player) => player.id !== activePlayer.id).map((player) => <div>{player.name + ': '+ (player.role ? player.role : 'Not picked')}</div>)}
+                        </div>
+                        {activePlayer.id === this.props.currentUser.id && 
+                        <div>
+                            {Constants.Roles.filter(this.roleNotPicked).map((role) => <div style={styles.toggleButton} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession, this.props.server)}>{role.readableName}</div>)}
+                        </div>}
+                    </div>
                 </Dialog>
-                <Dialog
-                    isOpen={this.state.showBuildings}
-                    style={styles.modal}
-                    onClose={() => this.setState({ showBuildings: false })}
-                >Build</Dialog>
                 <Dialog>Available Graduates</Dialog>
                 <Dialog>Next Student Tiles</Dialog>
                 <Dialog>Industry Job Slots</Dialog>
@@ -121,7 +135,6 @@ const styles = {
         left:0,
         background:'black',
         opacity: 0.1,
-        pointerEvents:'none',
         width:'100vw',
         height:'100vh'
     },

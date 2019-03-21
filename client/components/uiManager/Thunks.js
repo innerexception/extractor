@@ -20,28 +20,49 @@ export const onMatchStart = (currentUser, session, server) => {
                     money: 3+session.players.length,
                     vp: 0,
                     resources: [],
-                    buildings: [[null, null, null],[null, null, null],[null, null, null]],
-                    students: [[null, null, null],[null, null, null],[null, null, null],[null, null, null]]
+                    buildings: Constants.InitialPlayerBuildings,
+                    students: Constants.InitialPlayerStudents
                 }
-            })
+            }),
+            buildings: Constants.BuildingsPool,
+            graduatePool: [
+                { type: Constants.GraduateTypes.COMMUNICATIONS, count: 20 },
+                { type: Constants.GraduateTypes.ENGLISH, count: 15 },
+                { type: Constants.GraduateTypes.COMPSCI, count: 10 },
+                { type: Constants.GraduateTypes.LAWYER, count: 10 },
+                { type: Constants.GraduateTypes.DOCTOR, count: 5 },
+            ]
         }
     })
 }
 
 export const onChooseRole = (role, currentUser, activeSession, server) => {
     activeSession.players.forEach((player) => { if(player.id === currentUser.id) player.role = role })
-    const nextPlayer = activeSession.players.find((player) => !player.role)
-    //set next player for current action
-    if(nextPlayer) activeSession.activePlayerId = nextPlayer.id
-    else{
-        //if everyone has a role then move to next phase, which is dictated by the next player's role
-        let nextPlayerIndex
-        activeSession.players.forEach((player, i) => {if(player.id === activeSession.activePlayerId) nextPlayerIndex = i})
-        const nextPlayer = activeSession.players[nextPlayerIndex+1]
-        if(!nextPlayer) nextPlayer = activeSession.players[0]
+    activeSession.phase = role.name
+    server.publishMessage({
+        type: Constants.ReducerActions.MATCH_UPDATE,
+        session: activeSession,
+        sessionId: activeSession.sessionId
+    })
+}
+
+export const onBuild = (building, currentUser, activeSession, server) => {
+    let nextPlayerIndex
+    activeSession.players.forEach((player, i) => { 
+        if(player.id === currentUser.id){
+            player.buildings[building.x][building.y] = building
+            nextPlayerIndex = i
+            player.money -= building.cost
+        } 
+    })
+
+    activeSession.buildings.forEach((pbuilding) => {if(pbuilding.name === building.name) pbuilding.count--})
+
+    let nextPlayer = activeSession.players[nextPlayerIndex+1]
+    if(nextPlayer)  
         activeSession.activePlayerId = nextPlayer.id
-        activeSession.phase = nextPlayer.role
-    }
+    else activeSession.activePlayerId = activeSession.players[0].id
+
     server.publishMessage({
         type: Constants.ReducerActions.MATCH_UPDATE,
         session: activeSession,

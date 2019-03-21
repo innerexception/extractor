@@ -1,8 +1,9 @@
 import React from 'react';
+import AppStyles from '../../AppStyles'
 
 export default class StudentBody extends React.Component {
     render(){
-       return <div style={{pointerEvents: this.props.isActive ? 'all':'none', display:'flex'}}>
+       return <div style={this.props.isActive ? AppStyles.flex : AppStyles.disabledSection}>
             {new Array(4).fill().map((row,i) => 
                 <div>
                     {this.props.player.students[i].map((student, j) => 

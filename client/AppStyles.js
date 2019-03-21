@@ -11,5 +11,13 @@ export default {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'space-around'
+    },
+    disabledSection: {
+        pointerEvents:'none',
+        opacity: 0.2,
+        display:'flex'
+    },
+    flex: {
+        display:'flex'
     }
 }
