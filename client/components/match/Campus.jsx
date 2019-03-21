@@ -27,16 +27,19 @@ const styles = {
     smallBuilding: {
         height: '2em',
         width:'4em',
-        background: 'blue'
+        border: '1px solid blue',
+        padding:'2px'
     },
     largeBuilding: {
         height: '2em',
         width:'4em',
-        background: 'purple'
+        border: '1px solid purple',
+        padding:'2px'
     },
     emptyBuilding: {
         height: '2em',
         width:'4em',
-        background: 'gray'
+        border: '1px solid gray',
+        padding:'2px'
     }
 }

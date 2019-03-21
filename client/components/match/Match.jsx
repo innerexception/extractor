@@ -76,23 +76,23 @@ export default class Match extends React.Component {
                     </div>
                 </div>
                 <div style={{display:'flex'}}>
-                    <div>Show/Hide Industry Job Slots</div>
-                    <div>Show/Hide Buildings</div>
-                    <div>Show/Hide Graduate Pool</div>
-                    <div>Show/Hide Student Tiles</div>
-                    <div>Show/Hide Fundraising</div>
+                    <div style={styles.toggleButton} onClick={()=>this.setState({showJobSlots: !this.state.showJobSlots})}>Show/Hide Industry Job Slots</div>
+                    <div style={styles.toggleButton} onClick={()=>this.setState({showBuildings: !this.state.showBuildings})}>Show/Hide Buildings</div>
+                    <div style={styles.toggleButton} onClick={()=>this.setState({showGraduatePool: !this.state.showGraduatePool})}>Show/Hide Graduate Pool</div>
+                    <div style={styles.toggleButton} onClick={()=>this.setState({showStudentTiles: !this.state.showStudentTiles})}>Show/Hide Student Tiles</div>
+                    <div style={styles.toggleButton} onClick={()=>this.setState({showFundraising: !this.state.showFundraising})}>Show/Hide Fundraising</div>
                 </div>
                 <Dialog
-                    isOpen={this.state.showChooseRoles}
+                    isOpen={this.state.showChooseRoles || this.props.activeSession.phase === Constants.Phases.CHOOSE_ROLES}
                     style={styles.modal}
                     onClose={() => this.setState({ showChooseRoles: false })}
                 >
-                    {Constants.Roles.map((role) => <Button text={role} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession, this.props.server)}/>)}
+                    {Constants.Roles.map((role) => <div style={styles.toggleButton} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession, this.props.server)}>{role}</div>)}
                 </Dialog>
                 <Dialog
-                    isOpen={this.state.showChooseRoles}
+                    isOpen={this.state.showBuildings}
                     style={styles.modal}
-                    onClose={() => this.setState({ showChooseRoles: false })}
+                    onClose={() => this.setState({ showBuildings: false })}
                 >Build</Dialog>
                 <Dialog>Available Graduates</Dialog>
                 <Dialog>Next Student Tiles</Dialog>
@@ -124,5 +124,11 @@ const styles = {
         pointerEvents:'none',
         width:'100vw',
         height:'100vh'
+    },
+    toggleButton: {
+        cursor:'pointer',
+        border:'1px solid',
+        borderRadius: '3px',
+        padding:'0.5em'
     }
 }

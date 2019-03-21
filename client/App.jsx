@@ -1,7 +1,9 @@
 import React from 'react';
 import UIStateContainer from './components/uiManager/UIStateContainer.js';
-import './App.css';
 import 'normalize.css'
+import "@blueprintjs/core/lib/css/blueprint.css"
+import "@blueprintjs/icons/lib/css/blueprint-icons.css"
+import './App.css';
 
 class App extends React.Component {
     render(){

@@ -4,10 +4,13 @@
 font-family: 'Architects Daughter', cursive; */
 
 html {
-    font-family: 'Architects Daughter', cursive;
-    font-size: calc(16px + 1vw);
     background: '#e5e5e5';
     height:100%;
+}
+
+body {
+  font-family: 'Architects Daughter', cursive;
+  font-size: calc(16px + 1vw);
 }
 
 .alternate-font{
