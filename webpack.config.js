@@ -8,7 +8,7 @@ module.exports = {
         filename: 'bundle.js',
         publicPath: '/',
     },
-    devtool: 'source-map',
+    devtool: 'eval-source-map',
     module: {
         rules: [{
                 test: /\.css$/,

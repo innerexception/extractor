@@ -1,7 +1,6 @@
 var WebSocketServer = require('websocket').server;
 var http = require('http');
 var Constants = require('../Constants.js').ReducerActions
-var Phrases = require('../Constants.js').Phrases
 var MatchStatus = require('../Constants.js').MatchStatus
 /**
  * HTTP server
@@ -17,7 +16,8 @@ server.listen(1337, function() {
  * WebSocket server
  */
 
-var sessions = [];
+var sessions = {};
+var sockets = {};
 
 var wsServer = new WebSocketServer({
   // WebSocket server is tied to a HTTP server. WebSocket request is just
@@ -36,6 +36,7 @@ wsServer.on('request', function(request) {
   var connection = request.accept(null, request.origin);
   var socketId = Date.now()+''+Math.random()
   connection.id = socketId
+  sockets[socketId] = connection
 
   console.log((new Date()) + ' Connection accepted.');
 
@@ -44,27 +45,29 @@ wsServer.on('request', function(request) {
     if (message.type === 'utf8') { // accept only text
         var obj = JSON.parse(message.utf8Data)
         var targetSession = sessions[obj.sessionId]
-        if(!targetSession && obj.type !== Constants.MATCH_AVAILABLE) return
+        console.log(sessions)
+        if(!targetSession && obj.type !== Constants.PLAYER_AVAILABLE) return
         switch(obj.type){
-          case Constants.MATCH_AVAILABLE:
+          case Constants.PLAYER_AVAILABLE:
             if(targetSession){
-              targetSession.players.push({...obj.currentUser, socket: connection})
+              targetSession.players.push({...obj.currentUser, socketId})
             }
             else{
               targetSession = {
-                players: [{...obj.currentUser, socket: connection}], 
-                session: {...obj.session, sessionId: Date.now()+''+Math.random()}
+                players: [{...obj.currentUser, socketId}], 
+                ...obj.session, 
+                sessionId: obj.sessionId
               }
-              console.log('created new session.')
+              console.log('created new session '+obj.sessionId)
             }
             break
           case Constants.MATCH_UPDATE:
-            targetSession.session = {...targetSession.session, ...obj.session}
+            targetSession = {...targetSession, ...obj.session}
             break
         }
         sessions[obj.sessionId] = targetSession
         publishSessionUpdate(targetSession)
-        if(targetSession.session.status === MatchStatus.LOST){
+        if(targetSession.status === MatchStatus.LOST){
           delete sessions[targetSession.sessionId]
         }
     }
@@ -77,11 +80,12 @@ wsServer.on('request', function(request) {
       var sessionIds = Object.keys(sessions)
       sessionIds.forEach((name) => {
         let session = sessions[name]
-        let player = session.players.find((player) => player.socket.id === socketId)
+        let player = session.players.find((player) => player.socketId === socketId)
         if(player){
           console.log('removing player '+player.name+' from session '+name)
           session.players = session.players.filter((rplayer) => rplayer.id !== player.id)
           publishSessionUpdate(session)
+          delete sockets[socketId]
           if(session.players.length === 0) {
             delete sessions[name]
             console.log('removed session '+name)
@@ -94,13 +98,12 @@ wsServer.on('request', function(request) {
 });
 
 const publishSessionUpdate = (targetSession) => {
-  let cleanedPlayers = targetSession.players.map((player) => ({...player, socket:null}))
-  var message = getSessionUpdateMessage({...targetSession, players: cleanedPlayers})
+  var message = getSessionUpdateMessage(targetSession)
   // broadcast message to clients of session
   var json = JSON.stringify({ type:'message', data: message });
   targetSession.players.forEach((player) => {
       console.log((new Date()) + ' ' + message);
-      player.socket.sendUTF(json);
+      sockets[player.socketId].sendUTF(json);
   })
 }
 

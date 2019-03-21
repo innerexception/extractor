@@ -7,7 +7,7 @@ export default class Lobby extends React.Component {
         console.log(this.props)
         onMatchStart(
             this.props.currentUser, 
-            this.props.activeSession.sessionId, 
+            this.props.activeSession, 
             this.props.server)
     }
 

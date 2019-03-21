@@ -50,12 +50,14 @@ export default class Match extends React.Component {
                                  onTeacherSelected={(teacher)=>this.setState({draggingTeacher: teacher})}
                                  onDropTeacher={(board, x, y)=>this.dropTeacher(board, x, y)}
                                  isActive={this.props.activeSession.phase === Constants.Phases.RECRUIT_STUDENT}/>
-                    <div style={styles.roleCard}>
-                        <h4>{activePlayer.role.name}</h4>
-                        <hr/>
-                        <h5>{role.actionDescription}</h5>
-                        <h5>{role.bonusDescription}</h5>
-                    </div>
+                    {activePlayer.role ? 
+                        <div style={styles.roleCard}>
+                            <h4>{activePlayer.role}</h4>
+                            <hr/>
+                            <h5>{role.actionDescription}</h5>
+                            <h5>{role.bonusDescription}</h5>
+                        </div> : 
+                        <div>no role yet</div>}
                     <div>
                         <h5>VP: {activePlayer.vp}</h5>
                         <h5>$: {activePlayer.money}</h5>

@@ -1,19 +1,29 @@
 import { dispatch } from '../../../index'
 import Constants from '../../../Constants';
 
-export const onLogin = (currentUser, server) => {
+export const onLogin = (currentUser, sessionId, server) => {
     dispatch({ type: Constants.ReducerActions.SET_USER, currentUser })
-    server.publishMessage({type: Constants.ReducerActions.MATCH_AVAILABLE, currentUser})
+    server.publishMessage({type: Constants.ReducerActions.PLAYER_AVAILABLE, currentUser, sessionId})
 }
 
-export const onMatchStart = (currentUser, sessionId, server) => {
+export const onMatchStart = (currentUser, session, server) => {
     server.publishMessage({
         type: Constants.ReducerActions.MATCH_UPDATE, 
-        sessionId,
+        sessionId: session.sessionId,
         session: {
             status: Constants.MatchStatus.ACTIVE,
             activePlayerId: currentUser.id,
-            phase: Constants.Phases.CHOOSE_ROLES
+            phase: Constants.Phases.CHOOSE_ROLES,
+            players: session.players.map((player) => {
+                return {
+                    ...player, 
+                    money: 3+session.players.length,
+                    vp: 0,
+                    resources: [],
+                    buildings: [[null, null, null],[null, null, null],[null, null, null]],
+                    students: [[null, null, null],[null, null, null],[null, null, null],[null, null, null]]
+                }
+            })
         }
     })
 }

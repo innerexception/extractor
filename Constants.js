@@ -2,7 +2,7 @@ module.exports = {
   ApiUrl: 'ws://localhost:1337',
 
   ReducerActions: {
-    MATCH_AVAILABLE: 'ma',
+    PLAYER_AVAILABLE: 'ma',
     MATCH_UPDATE: 'mu',
     MATCH_TICK: 'mt',
     PLAYER_READY: 'pr',

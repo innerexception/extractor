@@ -2,7 +2,7 @@ import React from 'react';
 
 export default class StudentBody extends React.Component {
     render(){
-        <div style={{pointerEvents: this.props.isActive ? 'all':'none'}}>
+       return <div style={{pointerEvents: this.props.isActive ? 'all':'none', display:'flex'}}>
             {new Array(4).fill().map((row,i) => 
                 <div>
                     {this.props.player.students[i].map((student, j) => 
@@ -19,5 +19,20 @@ export default class StudentBody extends React.Component {
                 </div>
             )}
         </div>
+    }
+}
+
+const styles = {
+    teacher: {
+        height: '2em',
+        width: '2em',
+        borderRadius: '1em',
+        background: 'brown'
+    },
+    emptyStudent: {
+        height: '2em',
+        width: '2em',
+        borderRadius: '1em',
+        background: 'gray'
     }
 }
