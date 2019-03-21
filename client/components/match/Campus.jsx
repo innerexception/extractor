@@ -26,11 +26,11 @@ export default class Campus extends React.Component {
                 <div>
                     {this.props.player.buildings[i].map((building, j) => 
                     building ? 
-                        <div style={building.isLarge ? styles.largeBuilding : styles.smallBuilding}>
+                        <div onMouseUp={()=>this.props.onDropTeacher('campus', i,j)} 
+                             style={building.isLarge ? styles.largeBuilding : styles.smallBuilding}>
                             {building.name}
-                            {building.teachers.length > 0 && 
-                                building.teachers.map((teacher) => 
-                                    <div style={styles.teacher} 
+                            {getTeachersForPosition(i,j, this.props.player.teachers).map((teacher) => 
+                                    <div style={AppStyles.teacher} 
                                          onMouseDown={()=>this.props.onTeacherSelected(teacher)}/>)}
                         </div> :
                         <div onClick={()=>this.setState({showBuildings: true, buildX:i, buildY:j})} 
@@ -44,7 +44,7 @@ export default class Campus extends React.Component {
                     onClose={() => this.setState({ showBuildings: false })}
                 >
                     <div>
-                        {Constants.BuildingsPool.map((building) => {
+                        {this.props.activeSession.buildings.map((building) => {
                             if(this.props.activeSession.buildings.find((pbuilding) => pbuilding.count > 0 && building.name === pbuilding.name))
                                 return <div onClick={()=>this.build(building, this.state.buildX, this.state.buildY)} 
                                             style={{pointerEvents: this.props.player.money >= building.cost ? '' : 'none'}}>
@@ -57,6 +57,8 @@ export default class Campus extends React.Component {
         </div>
     }
 }
+
+const getTeachersForPosition = (x,y, teachers) => teachers.filter((teacher) => teacher.x === x && teacher.y === y)
 
 const styles = {
     smallBuilding: {

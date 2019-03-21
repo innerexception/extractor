@@ -19,5 +19,12 @@ export default {
     },
     flex: {
         display:'flex'
+    },
+    teacher: {
+        height:'2em',
+        width:'2em',
+        borderRadius:'1em',
+        background:'brown',
+        cursor:'pointer'
     }
 }

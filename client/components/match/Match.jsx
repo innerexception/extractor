@@ -1,9 +1,10 @@
 import React from 'react';
-import { onMatchTick, onPlaceTeacher, onPlaceGraduate, onShipGraduates, onSellGraduates, onGetGraduates, onBuild, onGetTile, onChooseRole } from '../uiManager/Thunks.js'
+import { onMatchTick, onPlaceTeacher, onEndTurn, onShipGraduates, onSellGraduates, onGetGraduates, onBuild, onGetTile, onChooseRole } from '../uiManager/Thunks.js'
 import { Button, Card, Dialog, Tooltip, Position, Icon, Radio, RadioGroup, Popover } from '@blueprintjs/core'
 import Constants from '../../../Constants.js'
 import Campus from './Campus.jsx'
 import StudentBody from './StudentBody.jsx'
+import AppStyles from '../../AppStyles.js';
 
 export default class Match extends React.Component {
 
@@ -16,13 +17,15 @@ export default class Match extends React.Component {
     }
 
     dropTeacher = (board, x, y) => {
-        onPlaceTeacher(this.state.draggingTeacher, board, x, y)
-        this.setState({draggingTeacher: null})
+        if(this.state.draggingTeacher){
+            onPlaceTeacher(this.state.draggingTeacher, board, x, y, this.props.currentUser, this.props.activeSession, this.props.server)
+            this.setState({draggingTeacher: null})
+        }
     }
                             
     endTurn = () => {
         clearInterval(this.state.interval)
-        onEndTurn(this.props.activeSession.sessionName, this.props.server)
+        onEndTurn(this.props.currentUser, this.props.activeSession.sessionName, this.props.server)
     }
 
     checkTimer = () => {
@@ -34,7 +37,7 @@ export default class Match extends React.Component {
 
     roleNotPicked = (role) => {
         const pickedRoles = this.props.activeSession.players.map((player) => player.role).filter((role) => role)
-        return !pickedRoles.find((prole) => prole.name === role)
+        return !pickedRoles.find((prole) => prole.name === role.name)
     }
 
     render(){
@@ -43,8 +46,8 @@ export default class Match extends React.Component {
         const me = this.props.activeSession.players.find((player) => this.props.currentUser.id === player.id)
 
         return (
-            <div style={styles.frame}>
-                <h4>{this.props.currentUser.name}</h4>
+            <div style={styles.frame} onMouseUp={()=>this.setState({draggingTeacher:null})}>
+                <h4>{this.props.currentUser.name} {this.props.activeSession.bossId === me.id ? ' paid the cost to be the boss': ''}</h4>
                 <h4>{activePlayer.name+ " is currently "+this.props.activeSession.phase}</h4>
                 {activePlayer.id !== this.props.currentUser.id && <div style={styles.disabled}/>}
                 <div style={{display:'flex'}}>
@@ -54,12 +57,12 @@ export default class Match extends React.Component {
                             server={this.props.server}
                             onDropTeacher={(board, x, y)=>this.dropTeacher(board, x, y)}
                             showBuildings={this.state.showBuildings}
-                            isActive={this.props.activeSession.phase === Constants.Phases.BUILD && activePlayer.id === me.id}/>
+                            isActive={(this.props.activeSession.phase === Constants.Phases.BUILD || this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
                     <StudentBody player={me} 
                                  server={this.props.server}
                                  onTeacherSelected={(teacher)=>this.setState({draggingTeacher: teacher})}
                                  onDropTeacher={(board, x, y)=>this.dropTeacher(board, x, y)}
-                                 isActive={this.props.activeSession.phase === Constants.Phases.RECRUIT_STUDENT && activePlayer.id === me.id}/>
+                                 isActive={(this.props.activeSession.phase === Constants.Phases.RECRUIT_STUDENT || this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
                     {me.role ? 
                         <div style={styles.roleCard}>
                             <h4>{me.role.readableName}</h4>
@@ -76,6 +79,11 @@ export default class Match extends React.Component {
                                 <div onClick={onProduceResourceType(resource)}/>
                                 <h5>{resource.type} : {resource.count}</h5>
                             </div>)}
+                        <div style={this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS && activePlayer.id === me.id ? AppStyles.flex : AppStyles.disabledSection}>
+                            <h6>Unassigned Teachers:</h6>
+                            {me.teachers.filter((teacher)=>!teacher.board).map((teacher) => 
+                                <div style={AppStyles.teacher} onMouseDown={()=>this.setState({draggingTeacher: teacher})}/>)}
+                        </div>
                     </div>
                     <div style={styles.choiceBtn} onClick={this.endTurn}>End Turn</div>
                     <div style={{marginTop:'0.5em', marginBottom:'0.5em'}}>
@@ -100,11 +108,16 @@ export default class Match extends React.Component {
                     <div style={{display:'flex'}}>
                         <div>
                             {activePlayer.name + ' is picking...'}
-                            {this.props.activeSession.players.filter((player) => player.id !== activePlayer.id).map((player) => <div>{player.name + ': '+ (player.role ? player.role : 'Not picked')}</div>)}
+                            {this.props.activeSession.players.filter((player) => player.id !== activePlayer.id).map((player) => 
+                                <div>{player.name + ': '+ (player.role ? player.role.readableName : 'Not picked')}</div>
+                            )}
                         </div>
                         {activePlayer.id === this.props.currentUser.id && 
                         <div>
-                            {Constants.Roles.filter(this.roleNotPicked).map((role) => <div style={styles.toggleButton} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession, this.props.server)}>{role.readableName}</div>)}
+                            {Constants.Roles.filter(this.roleNotPicked).map((role) => 
+                                <div style={styles.toggleButton} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession, this.props.server)}>
+                                    {role.readableName}
+                                </div>)}
                         </div>}
                     </div>
                 </Dialog>
