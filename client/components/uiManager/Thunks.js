@@ -51,17 +51,31 @@ export const onMatchStart = (currentUser, session, server) => {
 export const onChooseRole = (role, currentUser, activeSession, server) => {
     activeSession.players.forEach((player) => { if(player.id === currentUser.id) player.role = role })
     activeSession.phase = role.name
-
+    
     if(role.name === Constants.Phases.RECRUIT_TEACHERS){
+        let emptySpots = 0
         activeSession.players.forEach((player) => {
             let amount = Math.round(activeSession.hiringPool/activeSession.players.length)
             player.teachers = player.teachers.concat(new Array(amount).fill()
                 .map((teacher) => ({
                     id: Date.now() + '' + Math.random()
                 })))
+            player.buildings.forEach((row, i) => {
+                row.forEach((building,j) => {
+                    if(building){
+                        let present = getTeachersForPosition(i,j,player.teachers,'campus')
+                        emptySpots += building.capacity - present
+                    }
+                })
+            })
         })
         
         toast.show({message: 'Distributed '+amount+' teachers to all players. Place them now.'})
+
+        //refill hiring pool
+        let refill = Math.max(emptySpots, activeSession.players.length)
+        activeSession.hiringPool = refill
+        activeSession.teacherPool -= refill
     }
 
     if(role.name === Constants.Phases.COLLECT_INTEREST){
@@ -110,11 +124,23 @@ export const onSellGraduate = (graduate, currentUser, activeSession, server) => 
     toast.show({message: 'You got a graduate to give $'+graduate.value+'!'})
 }
 
+export const onProduceGraduates = (graduateType, currentUser, activeSession, server) => {
+    let amountProduced
+    activeSession.players.forEach((player) => {
+        if(player.id === currentUser.id){
+            //TODO check player highschools,
+            //for each highschool, check the type
+            //if type requires building, check if building exists and is manned
+            //then produce a graduate.
+        }
+    })
+}
+
 export const onBuild = (building, currentUser, activeSession, server) => {
     let nextPlayerIndex
     activeSession.players.forEach((player) => { 
         if(player.id === currentUser.id){
-            player.buildings[building.x][building.y] = building
+            player.buildings[building.x][building.y] = {...building}
             nextPlayerIndex = player.turn
             player.money -= building.cost
         } 
@@ -138,9 +164,14 @@ export const onPlaceTeacher = (teacher, board, x, y, currentUser, activeSession,
         if(player.id === currentUser.id){
             player.teachers.forEach((pteacher) => {
                 if(teacher.id === pteacher.id){
-                    pteacher.x = x
-                    pteacher.y = y
-                    pteacher.board = board
+                    if(!getTeachersForPosition(x,y,player.teachers, board)){
+                        pteacher.x = x
+                        pteacher.y = y
+                        pteacher.board = board
+                        toast.show({message: 'Teacher Placed.'})
+                        //TODO check building capacity here also
+                    }
+                    else toast.show({message: 'Space is full!'})
                 }
             })
         }
@@ -152,7 +183,6 @@ export const onPlaceTeacher = (teacher, board, x, y, currentUser, activeSession,
         sessionId: activeSession.sessionId
     })
 
-    toast.show({message: 'Teacher Placed.'})
 }
 
 export const onTilePlaced = (tile, x, y, currentUser, activeSession, server) => {
@@ -269,3 +299,5 @@ export const getRandomTile = () => {
     let types = Object.keys(Constants.GraduateTypes)
     return Constants.GraduateTypes[types[Math.floor(Math.random()*types.length)]]
 }
+
+const getTeachersForPosition = (x,y, teachers, board) => teachers.filter((teacher) => teacher.x === x && teacher.y === y && teacher.board === board)

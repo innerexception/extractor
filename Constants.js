@@ -45,36 +45,42 @@ module.exports = {
     {
       name: 'English Department',
       count: 3,
-      cost: 1
+      cost: 1,
+      capacity: 1
     },
     {
       name: 'English Department (L)',
       count: 3,
       isLarge: true,
-      cost: 3
+      cost: 3,
+      capacity: 2
     },
     {
       name: 'Computer Science Department',
       count: 3,
       cost: 3,
+      capacity: 1
     },
     {
       name: 'Computer Science Department (L)',
       count: 3,
       cost: 5,
-      isLarge: true
+      isLarge: true,
+      capacity: 2
     },
     {
       name: 'Law School',
       count: 2,
       cost: 6,
-      isLarge: true
+      isLarge: true,
+      capacity: 3
     },
     {
       name: 'Medical School',
       count: 2,
       cost: 7,
-      isLarge: true
+      isLarge: true,
+      capacity: 2
     },
   ],
   InitialPlayerBuildings: [[null, null, null],[null, null, null],[null, null, null]],

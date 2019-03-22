@@ -1,10 +1,11 @@
 import React from 'react';
-import { onMatchTick, onPlaceTeacher, onEndTurn, onShipGraduates, onSellGraduate, onGetGraduates, onBuild, onGetTile, onChooseRole } from '../uiManager/Thunks.js'
+import { onMatchTick, onPlaceTeacher, onEndTurn, onShipGraduates, onSellGraduate, onProduceGraduates, onChooseRole } from '../uiManager/Thunks.js'
 import { Button, Card, Dialog, Tooltip, Position, Icon, Radio, RadioGroup, Popover } from '@blueprintjs/core'
 import Constants from '../../../Constants.js'
 import Campus from './Campus.jsx'
 import StudentBody from './StudentBody.jsx'
 import AppStyles from '../../AppStyles.js';
+import { toast } from '../uiManager/toast.js'
 
 export default class Match extends React.Component {
 
@@ -22,16 +23,24 @@ export default class Match extends React.Component {
             this.setState({draggingTeacher: null})
         }
     }
-    
+
+    onProduce = (graduateType) => {
+        if(this.props.activeSession.graduatePool[graduateType] <= 0){
+            toast.show({message: 'No graduates of this type left.'})
+            return
+        }
+        onProduceGraduates(graduateType, this.props.currentUser, this.props.activeSession, this.props.server)
+    }
+
     onSellGraduate = () => {
         if(this.props.activeSession.fundraising.find((graduate) => graduate.type === this.state.sellingGraduate.type)){
-            this.setState({sellingError: true})
+            toast.show({message: "Can't shakedown more than 1 grad of the same type."})
             //TODO add building check for selling
         }
         else {
             onSellGraduate(this.state.sellingGraduate, this.props.currentUser, this.props.activeSession, this.props.server)
         }
-        this.setState({sellingGraduate:null})
+        this.setState({sellingGraduate:null, showFundraising: false})
     }
 
     endTurn = () => {
@@ -87,10 +96,10 @@ export default class Match extends React.Component {
                         <h5>VP: {me.vp}</h5>
                         <h5>$: {me.money}</h5>
                         <h5>Graduates: </h5>
-                        {me.graduates.map((resource) => 
+                        {me.graduates.map((graduate) => 
                             <div style={this.props.activeSession.phase === Constants.Phases.FUNDRAISE ? styles.active : styles.disabled}>
-                                <div onClick={this.setState({sellingGraduate: resource, showFundraising: true})}/>
-                                <h5>{resource.type} : {resource.count}</h5>
+                                <div style={styles[graduate.type]} onClick={this.setState({sellingGraduate: graduate, showFundraising: true})}/>
+                                <h5>{graduate.type} : {me.graduates.filter((mgraduate) => mgraduate.type === graduate.type).length}</h5>
                             </div>)}
                         <div style={this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS && activePlayer.id === me.id ? AppStyles.flex : AppStyles.disabledSection}>
                             <h6>Unassigned Teachers:</h6>
@@ -135,9 +144,9 @@ export default class Match extends React.Component {
                     </div>
                 </Dialog>
                 <Dialog
-                    isOpen={this.state.showChooseRoles || this.props.activeSession.phase === Constants.Phases.CHOOSE_ROLES}
+                    isOpen={this.state.showFundraising}
                     style={styles.modal}
-                    onClose={() => this.setState({ showChooseRoles: false })}
+                    onClose={() => this.setState({ showFundraising: false })}
                 >   
                     <div style={{display:'flex'}}>
                         <h4>Shakedown a grad for money</h4>
@@ -150,7 +159,20 @@ export default class Match extends React.Component {
                         </div>
                     </div>
                 </Dialog>
-                <Dialog>Available Graduates</Dialog>
+                <Dialog
+                    isOpen={this.state.showGraduatePool}
+                    style={styles.modal}
+                    onClose={() => this.setState({ showGraduatePool: false })}
+                >
+                    <div style={{display:'flex'}}>
+                        <h4>Choose what kind of graduate you will make:</h4>
+                        {Object.keys(this.props.activeSession.graduatePool).map((key) => 
+                            <div style={styles[key]} onClick={()=>this.onProduce(key)}>
+                                {this.props.activeSession.graduatePool[key]} left
+                            </div>
+                        )}
+                    </div>
+                </Dialog>
                 <Dialog>Next Student Tiles</Dialog>
                 <Dialog>Industry Job Slots</Dialog>
             </div>
