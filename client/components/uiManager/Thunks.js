@@ -1,5 +1,6 @@
 import { dispatch } from '../../../index'
 import Constants from '../../../Constants';
+import { toast } from '../uiManager/toast.js'
 
 export const onLogin = (currentUser, sessionId, server) => {
     dispatch({ type: Constants.ReducerActions.SET_USER, currentUser })
@@ -44,6 +45,7 @@ export const onMatchStart = (currentUser, session, server) => {
             roles: []
         }
     })
+    toast.show({message: 'Match was begun.'})
 }
 
 export const onChooseRole = (role, currentUser, activeSession, server) => {
@@ -52,11 +54,24 @@ export const onChooseRole = (role, currentUser, activeSession, server) => {
 
     if(role.name === Constants.Phases.RECRUIT_TEACHERS){
         activeSession.players.forEach((player) => {
-            player.teachers = player.teachers.concat(new Array(Math.round(activeSession.hiringPool/activeSession.players.length)).fill()
+            let amount = Math.round(activeSession.hiringPool/activeSession.players.length)
+            player.teachers = player.teachers.concat(new Array(amount).fill()
                 .map((teacher) => ({
                     id: Date.now() + '' + Math.random()
                 })))
         })
+        
+        toast.show({message: 'Distributed '+amount+' teachers to all players. Place them now.'})
+    }
+
+    if(role.name === Constants.Phases.COLLECT_INTEREST){
+        activeSession.players.forEach((player) => {
+            if(player.id === currentUser.id){
+                player.money++
+            }
+        })
+        
+        toast.show({message: 'You collected $1 in interest.'})
     }
 
     server.publishMessage({
@@ -64,6 +79,7 @@ export const onChooseRole = (role, currentUser, activeSession, server) => {
         session: activeSession,
         sessionId: activeSession.sessionId
     })
+
 }
 
 export const onSellGraduate = (graduate, currentUser, activeSession, server) => {
@@ -90,6 +106,8 @@ export const onSellGraduate = (graduate, currentUser, activeSession, server) => 
         session: activeSession,
         sessionId: activeSession.sessionId
     })
+
+    toast.show({message: 'You got a graduate to give $'+graduate.value+'!'})
 }
 
 export const onBuild = (building, currentUser, activeSession, server) => {
@@ -111,6 +129,8 @@ export const onBuild = (building, currentUser, activeSession, server) => {
         session: activeSession,
         sessionId: activeSession.sessionId
     })
+
+    toast.show({message: 'You built a '+building.name})
 }
 
 export const onPlaceTeacher = (teacher, board, x, y, currentUser, activeSession, server) => {
@@ -131,6 +151,8 @@ export const onPlaceTeacher = (teacher, board, x, y, currentUser, activeSession,
         session: activeSession,
         sessionId: activeSession.sessionId
     })
+
+    toast.show({message: 'Teacher Placed.'})
 }
 
 export const onTilePlaced = (tile, x, y, currentUser, activeSession, server) => {
@@ -165,6 +187,8 @@ export const onTilePlaced = (tile, x, y, currentUser, activeSession, server) => 
         session: activeSession,
         sessionId: activeSession.sessionId
     })
+
+    toast.show({message: tile+' high school has been recruited.'})
 }
 
 export const onEndTurn = (currentUser, activeSession, server) => {
@@ -182,6 +206,8 @@ export const onEndTurn = (currentUser, activeSession, server) => {
         session: activeSession,
         sessionId: activeSession.sessionId
     })
+
+    toast.show({message: 'You ended your turn.'})
 }
 
 export const onMatchTick = (session, server) => {
