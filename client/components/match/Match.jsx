@@ -1,5 +1,5 @@
 import React from 'react';
-import { onMatchTick, onPlaceTeacher, onEndTurn, onShipGraduates, onSellGraduates, onGetGraduates, onBuild, onGetTile, onChooseRole } from '../uiManager/Thunks.js'
+import { onMatchTick, onPlaceTeacher, onEndTurn, onShipGraduates, onSellGraduate, onGetGraduates, onBuild, onGetTile, onChooseRole } from '../uiManager/Thunks.js'
 import { Button, Card, Dialog, Tooltip, Position, Icon, Radio, RadioGroup, Popover } from '@blueprintjs/core'
 import Constants from '../../../Constants.js'
 import Campus from './Campus.jsx'
@@ -22,7 +22,18 @@ export default class Match extends React.Component {
             this.setState({draggingTeacher: null})
         }
     }
-                            
+    
+    onSellGraduate = () => {
+        if(this.props.activeSession.fundraising.find((graduate) => graduate.type === this.state.sellingGraduate.type)){
+            this.setState({sellingError: true})
+            //TODO add building check for selling
+        }
+        else {
+            onSellGraduate(this.state.sellingGraduate, this.props.currentUser, this.props.activeSession, this.props.server)
+        }
+        this.setState({sellingGraduate:null})
+    }
+
     endTurn = () => {
         clearInterval(this.state.interval)
         onEndTurn(this.props.currentUser, this.props.activeSession.sessionName, this.props.server)
@@ -75,9 +86,10 @@ export default class Match extends React.Component {
                     <div>
                         <h5>VP: {me.vp}</h5>
                         <h5>$: {me.money}</h5>
-                        {me.resources.map((resource) => 
-                            <div style={this.props.activeSession.phase === Constants.Phases.PRODUCE ? styles.active : styles.disabled}>
-                                <div onClick={onProduceResourceType(resource)}/>
+                        <h5>Graduates: </h5>
+                        {me.graduates.map((resource) => 
+                            <div style={this.props.activeSession.phase === Constants.Phases.FUNDRAISE ? styles.active : styles.disabled}>
+                                <div onClick={this.setState({sellingGraduate: resource, showFundraising: true})}/>
                                 <h5>{resource.type} : {resource.count}</h5>
                             </div>)}
                         <div style={this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS && activePlayer.id === me.id ? AppStyles.flex : AppStyles.disabledSection}>
@@ -122,10 +134,25 @@ export default class Match extends React.Component {
                         </div>}
                     </div>
                 </Dialog>
+                <Dialog
+                    isOpen={this.state.showChooseRoles || this.props.activeSession.phase === Constants.Phases.CHOOSE_ROLES}
+                    style={styles.modal}
+                    onClose={() => this.setState({ showChooseRoles: false })}
+                >   
+                    <div style={{display:'flex'}}>
+                        <h4>Shakedown a grad for money</h4>
+                        <div>
+                            {this.props.activeSession.fundraising.map((graduate) => 
+                                graduate ? 
+                                <div style={styles[graduate.type]}/> : 
+                                <div onClick={this.onSellGraduate} style={styles.emptyFundSpot}/>    
+                            )}
+                        </div>
+                    </div>
+                </Dialog>
                 <Dialog>Available Graduates</Dialog>
                 <Dialog>Next Student Tiles</Dialog>
                 <Dialog>Industry Job Slots</Dialog>
-                <Dialog>Fundraising</Dialog>
             </div>
         )
     }

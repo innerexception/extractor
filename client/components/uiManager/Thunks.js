@@ -20,7 +20,7 @@ export const onMatchStart = (currentUser, session, server) => {
                     ...player, 
                     money: 3+session.players.length,
                     vp: 0,
-                    resources: [],
+                    graduates: [],
                     buildings: Constants.InitialPlayerBuildings,
                     students: Constants.InitialPlayerStudents,
                     teachers: [],
@@ -31,13 +31,14 @@ export const onMatchStart = (currentUser, session, server) => {
             buildings: Constants.BuildingsPool,
             tiles: getInitialTiles(),
             quarries: 6,
-            graduatePool: [
-                { type: Constants.GraduateTypes.COMMUNICATIONS, count: 20 },
-                { type: Constants.GraduateTypes.ENGLISH, count: 15 },
-                { type: Constants.GraduateTypes.COMPSCI, count: 10 },
-                { type: Constants.GraduateTypes.LAWYER, count: 10 },
-                { type: Constants.GraduateTypes.DOCTOR, count: 5 },
-            ],
+            fundraising: [],
+            graduatePool: {
+                [Constants.GraduateTypes.COMMUNICATIONS]: 20,
+                [Constants.GraduateTypes.ENGLISH]: 15,
+                [Constants.GraduateTypes.COMPSCI]: 10,
+                [Constants.GraduateTypes.LAWYER]: 10,
+                [Constants.GraduateTypes.DOCTOR]: 5
+            },
             hiringPool: session.players.length+1,
             teacherPool: 55,
             roles: []
@@ -58,6 +59,32 @@ export const onChooseRole = (role, currentUser, activeSession, server) => {
         })
     }
 
+    server.publishMessage({
+        type: Constants.ReducerActions.MATCH_UPDATE,
+        session: activeSession,
+        sessionId: activeSession.sessionId
+    })
+}
+
+export const onSellGraduate = (graduate, currentUser, activeSession, server) => {
+    activeSession.fundraising.push(graduate)
+    if(activeSession.fundraising.length >=4){
+        //put these back in the graduate pool
+        activeSession.fundraising.forEach((graduate) => {
+            activeSession.graduatePool[graduate.type]++
+        })
+        activeSession.fundraising = []
+    }
+    let nextPlayerIndex
+    activeSession.players.forEach((player) => { 
+        if(player.id === currentUser.id){
+            player.buildings[building.x][building.y] = building
+            nextPlayerIndex = player.turn
+            player.money += graduate.value
+            player.graduates = player.graduates.filter((pgraduate) => graduate.id !== pgraduate.id)
+        } 
+    })
+    activeSession = prepareNextPlayer(activeSession, nextPlayerIndex)
     server.publishMessage({
         type: Constants.ReducerActions.MATCH_UPDATE,
         session: activeSession,
@@ -87,7 +114,6 @@ export const onBuild = (building, currentUser, activeSession, server) => {
 }
 
 export const onPlaceTeacher = (teacher, board, x, y, currentUser, activeSession, server) => {
-    let nextPlayerIndex
     activeSession.players.forEach((player) => {
         if(player.id === currentUser.id){
             player.teachers.forEach((pteacher) => {
@@ -97,11 +123,8 @@ export const onPlaceTeacher = (teacher, board, x, y, currentUser, activeSession,
                     pteacher.board = board
                 }
             })
-            nextPlayerIndex = player.turn
         }
     })
-
-    activeSession = prepareNextPlayer(activeSession, nextPlayerIndex)
 
     server.publishMessage({
         type: Constants.ReducerActions.MATCH_UPDATE,
@@ -203,6 +226,7 @@ const prepareNextPlayer = (activeSession, nextPlayerIndex) => {
         let emptyRole = activeSession.players.find((player) => !player.role)
         if(!emptyRole){
             activeSession.players.forEach((player) => player.role = null)
+            //TODO
             activeSession.roles.forEach((role) => {if(!role.picked) role.money++})
         }
     }
