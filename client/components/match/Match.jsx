@@ -59,10 +59,11 @@ export default class Match extends React.Component {
                             showBuildings={this.state.showBuildings}
                             isActive={(this.props.activeSession.phase === Constants.Phases.BUILD || this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
                     <StudentBody player={me} 
+                                 activeSession={this.props.activeSession}
                                  server={this.props.server}
                                  onTeacherSelected={(teacher)=>this.setState({draggingTeacher: teacher})}
                                  onDropTeacher={(board, x, y)=>this.dropTeacher(board, x, y)}
-                                 isActive={(this.props.activeSession.phase === Constants.Phases.RECRUIT_STUDENT || this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
+                                 isActive={(this.props.activeSession.phase === Constants.Phases.RECRUIT_STUDENTS || this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
                     {me.role ? 
                         <div style={styles.roleCard}>
                             <h4>{me.role.readableName}</h4>

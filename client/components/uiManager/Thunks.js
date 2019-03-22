@@ -24,10 +24,13 @@ export const onMatchStart = (currentUser, session, server) => {
                     buildings: Constants.InitialPlayerBuildings,
                     students: Constants.InitialPlayerStudents,
                     teachers: [],
-                    turn: i
+                    turn: i,
+                    tilePlacements: 1
                 }
             }),
             buildings: Constants.BuildingsPool,
+            tiles: getInitialTiles(),
+            quarries: 6,
             graduatePool: [
                 { type: Constants.GraduateTypes.COMMUNICATIONS, count: 20 },
                 { type: Constants.GraduateTypes.ENGLISH, count: 15 },
@@ -107,6 +110,40 @@ export const onPlaceTeacher = (teacher, board, x, y, currentUser, activeSession,
     })
 }
 
+export const onTilePlaced = (tile, x, y, currentUser, activeSession, server) => {
+    let nextPlayerIndex, setNextPlayer
+    activeSession.players.forEach((player) => {
+        if(player.id === currentUser.id){
+            player.students[x][y]={   
+                type: tile
+            }
+            nextPlayerIndex = player.turn
+            player.tilePlacements--;
+            if(player.tilePlacements <= 0){
+                setNextPlayer = true
+                player.tilePlacements = 1 //todo check for building upgrade
+            }
+        }
+    })
+
+    if(setNextPlayer){
+        activeSession = prepareNextPlayer(activeSession, nextPlayerIndex)
+    }
+
+    //Randomize 1 of the session tiles
+    activeSession.tiles[Math.floor(Math.random()*activeSession.tiles.length)] = getRandomTile()
+
+    //If a quarry was picked, subtract from session total
+    if(tile === 'quarry')
+        activeSession.quarries--
+
+    server.publishMessage({
+        type: Constants.ReducerActions.MATCH_UPDATE,
+        session: activeSession,
+        sessionId: activeSession.sessionId
+    })
+}
+
 export const onEndTurn = (currentUser, activeSession, server) => {
     let nextPlayerIndex
     activeSession.players.forEach((player) => {
@@ -170,4 +207,15 @@ const prepareNextPlayer = (activeSession, nextPlayerIndex) => {
         }
     }
     return activeSession
+}
+
+const getInitialTiles = () => {
+    return new Array(4).fill().map((tile) => {
+        return getRandomTile()
+    })
+}
+
+export const getRandomTile = () => {
+    let types = Object.keys(Constants.GraduateTypes)
+    return Constants.GraduateTypes[types[Math.floor(Math.random()*types.length)]]
 }

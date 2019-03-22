@@ -1,7 +1,6 @@
 import React from 'react';
 import AppStyles from '../../AppStyles'
 import { Dialog } from '@blueprintjs/core'
-import Constants from '../../../Constants.js'
 import { onBuild } from '../uiManager/Thunks.js'
 
 export default class Campus extends React.Component {
@@ -58,7 +57,7 @@ export default class Campus extends React.Component {
     }
 }
 
-const getTeachersForPosition = (x,y, teachers) => teachers.filter((teacher) => teacher.x === x && teacher.y === y)
+const getTeachersForPosition = (x,y, teachers) => teachers.filter((teacher) => teacher.x === x && teacher.y === y && teacher.board === 'campus')
 
 const styles = {
     smallBuilding: {
