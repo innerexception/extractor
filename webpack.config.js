@@ -1,7 +1,8 @@
 const path = require('path')
+const webpack= require('webpack')
 module.exports = {
     entry: [
-        "./index.js"
+        "./index.tsx"
     ],
     output: {
         path: path.join(__dirname, './build'),
@@ -9,6 +10,12 @@ module.exports = {
         publicPath: '/',
     },
     devtool: 'eval-source-map',
+    resolve: {extensions: ['.js', '.jsx', '.ts', '.tsx']},
+    plugins: [
+        new webpack.WatchIgnorePlugin([
+          /\.d\.ts$/
+        ])
+      ],
     module: {
         rules: [{
                 test: /\.css$/,
@@ -21,7 +28,7 @@ module.exports = {
                 ]
             },
             {
-                test: /\.tsx?$/,
+                test: /\.ts|\.tsx$/,
                 loader: "ts-loader",
             },
             {

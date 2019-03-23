@@ -1,25 +1,39 @@
-import React from 'react';
+import * as React from 'react';
 import AppStyles from '../../AppStyles'
 import { Dialog } from '@blueprintjs/core'
-import { onTilePlaced, getRandomTile } from '../uiManager/Thunks.js'
+import { onTilePlaced, getRandomTile } from '../uiManager/Thunks'
 
-export default class StudentBody extends React.Component {
-    state = { showTiles: false }
+interface Props {
+    player: Player
+    activeSession: Session
+    isActive: boolean
+    onTeacherSelected: Function
+    onDropTeacher: Function
+}
 
-    placeTile = (tile) => {
+interface State {
+    showTiles: boolean
+    tileX:number
+    tileY:number
+}
+
+export default class StudentBody extends React.Component<Props, State> {
+    state = { showTiles: false, tileX: 0, tileY:0 }
+
+    placeTile = (tileType:GraduateTypes) => {
         this.setState({showTiles:false})
-        onTilePlaced(tile, this.state.tileX, this.state.tileY, this.props.player, this.props.activeSession, this.props.server)
+        onTilePlaced(tileType, this.state.tileX, this.state.tileY, this.props.player, this.props.activeSession)
     }
 
     render(){
        return <div style={this.props.isActive ? AppStyles.flex : AppStyles.disabledSection}>
-            {new Array(4).fill().map((row,i) => 
+            {new Array(4).fill(null).map((row,i) => 
                 <div>
-                    {this.props.player.students[i].map((student, j) => 
+                    {this.props.player.highSchools[i].map((student, j) => 
                     student ? 
                         <div onMouseUp={()=>this.props.onDropTeacher('highschools', i,j)} 
                              style={styles.studentTile}>
-                            <div style={{...styles[student.type], ...styles.studentTile}}/>
+                            <div style={{...(AppStyles.highSchoolTile as any)[student.type], ...styles.studentTile}}/>
                             {getTeachersForPosition(i,j, this.props.player.teachers).map((teacher) => 
                                     <div style={AppStyles.teacher} 
                                          onMouseDown={()=>this.props.onTeacherSelected(teacher)}/>)}
@@ -37,21 +51,23 @@ export default class StudentBody extends React.Component {
                     onClose={() => this.setState({ showTiles: false })}
                 >
                     <div>
-                        {this.props.activeSession.tiles.map((tile) => 
-                            <div style={{...styles[tile], ...styles.studentTile}} onClick={()=>this.placeTile(tile)}/>    
+                        {this.props.activeSession.highSchools.map((schoolType) => 
+                            <div style={{...(AppStyles.highSchoolTile as any)[schoolType], ...styles.studentTile}} onClick={()=>this.placeTile(schoolType)}/>    
                         )}
                         <div style={{...styles.random, ...styles.studentTile}} onClick={()=>this.placeTile(getRandomTile())}/>    
                         {this.props.activeSession.quarries > 0 && 
-                            <div style={{...styles.quarry, ...styles.studentTile}} onClick={()=>this.placeTile('quarry')}/>} 
+                            <div style={{...styles.quarry, ...styles.studentTile}} onClick={()=>this.placeTile(GraduateTypes.TRADES)}/>} 
                     </div>
             </Dialog>
         </div>
     }
 }
 
-const getTeachersForPosition = (x,y, teachers) => teachers.filter((teacher) => teacher.x === x && teacher.y === y && teacher.board !== 'campus')
+const getTeachersForPosition = (x:number,y:number, teachers:Array<Teacher>) => 
+    teachers.filter((teacher) => teacher.x === x && teacher.y === y && teacher.board !== 'campus')
 
 const styles = {
+    modal: {},
     teacher: {
         height: '2em',
         width: '2em',

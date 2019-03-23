@@ -67,7 +67,7 @@ wsServer.on('request', function(request) {
         }
         sessions[obj.sessionId] = targetSession
         publishSessionUpdate(targetSession)
-        if(targetSession.status === MatchStatus.LOST){
+        if(targetSession.status === MatchStatus.LOSE || targetSession.status === MatchStatus.WIN){
           delete sessions[targetSession.sessionId]
         }
     }

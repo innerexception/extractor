@@ -1,10 +1,11 @@
-import Constants from '../../../Constants'
-import WS from '../../WebsocketClient'
+let Constants = require('../../../Constants')
+import {server} from './Thunks'
 
-const appReducer = (state = getInitialState(), action) => {
+const appReducer = (state = getInitialState(), action:any) => {
     switch (action.type) {
         case Constants.ReducerActions.INIT_SERVER:
-            return { ...state, server: new WS(action.props) }
+            server.setProps(action.props)
+            return { ...state }
         case Constants.ReducerActions.CONNECTED: 
             return { ...state, isConnected: true}
         case Constants.ReducerActions.CONNECTION_ERROR: 
@@ -15,7 +16,7 @@ const appReducer = (state = getInitialState(), action) => {
             state.activeSession.players.push(action.currentUser)
             return { ...state, activeSession: {...state.activeSession}}
         case Constants.ReducerActions.PLAYER_LEFT:
-            state.activeSession.players.filter((player) => player.id !== action.currentUser.id)
+            state.activeSession.players.filter((player:any) => player.id !== action.currentUser.id)
             return { ...state, activeSession: {...state.activeSession}}
         case Constants.ReducerActions.SET_USER: 
             return { ...state, currentUser: action.currentUser }
@@ -30,8 +31,12 @@ export default appReducer;
 
 const getInitialState = () => {
     return {
-        currentUser: null,
-        activeSession: null,
-        isConnected: false
+        activeSession: {
+            players: new Array<any>()
+        },
+        isConnected: false,
+        currentUser: {
+            
+        }
     }
 }

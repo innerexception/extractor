@@ -22,25 +22,6 @@ module.exports = {
     SET_USER: 'su'
   },
 
-  Phases: {
-    CHOOSE_ROLES: 'CHOOSE_ROLES',
-    BUILD:'BUILD',
-    RECRUIT_TEACHERS:'RECRUIT_TEACHERS',
-    RECRUIT_STUDENTS:'RECRUIT_STUDENTS',
-    FUNDRAISE:'FUNDRAISE',
-    PRODUCE:'PRODUCE',
-    PLACE_GRADUATES:'PLACE_GRADUATES',
-    COLLECT_INTEREST:'INTEREST'
-  },
-
-  GraduateTypes: {
-    COMMUNICATIONS: 'com',
-    ENGLISH: 'eng',
-    COMPSCI: 'comp',
-    LAWYER: 'law',
-    DOCTOR: 'dr'
-  },
-  
   BuildingsPool: [
     {
       name: 'English Department',
@@ -85,55 +66,60 @@ module.exports = {
   ],
   InitialPlayerBuildings: [[null, null, null],[null, null, null],[null, null, null]],
   InitialPlayerStudents: [[null, null, null],[null, null, null],[null, null, null],[null, null, null]],
-
-  Roles: [
+  InitialRoles: [
     {
-      name: 'BUILD', 
-      readableName: 'Expand', 
-      actionDescription: 'Build a building on campus.', 
-      bonusDescription: 'Building costs 1 less.'
+      phase: 'BUILD',
+      money: 0,
+      name: 'Builder',
+      actionDescription: 'Build a thing',
+      bonusDescription: 'Build a thing for 1 less'    
     },
     {
-      name: 'RECRUIT_TEACHERS', 
-      readableName: 'Recruit Teachers', 
-      actionDescription: 'Build a building on campus.', 
-      bonusDescription: 'Building costs 1 less.'
+      phase: 'COLLECT_INTEREST',
+      money: 0,
+      name: 'Interest',
+      actionDescription: 'Get Money',
+      bonusDescription: '---'    
     },
     {
-      name: 'RECRUIT_STUDENTS', 
-      readableName: 'Recruit Students', 
-      actionDescription: 'Build a building on campus.', 
-      bonusDescription: 'Building costs 1 less.'
+      phase: 'FUNDRAISE',
+      money: 0,
+      name: 'Fundraiser',
+      actionDescription: 'Shakedown a graduate',
+      bonusDescription: 'Get 1 extra money'    
     },
     {
-      name: 'FUNDRAISE', 
-      readableName: 'Hold Fundraiser', 
-      actionDescription: 'Build a building on campus.',
-      bonusDescription: 'Building costs 1 less.'
+      phase: 'PLACE_GRADUATES',
+      money: 0,
+      name: 'Job Placement',
+      actionDescription: 'Get someone a job',
+      bonusDescription: 'Get 1 extra point'    
     },
     {
-      name: 'PRODUCE', 
-      readableName: 'Produce Graduates',
-      actionDescription: 'Build a building on campus.', 
-      bonusDescription: 'Building costs 1 less.'
+      phase: 'PRODUCE',
+      money: 0,
+      name: 'Graduate',
+      actionDescription: 'Get graduates of kind you can produce',
+      bonusDescription: 'Get 1 extra graduate'    
     },
     {
-      name: 'PLACE_GRADUATES', 
-      readableName: 'Place Graduates',
-      actionDescription: 'Build a building on campus.', 
-      bonusDescription: 'Building costs 1 less.'
+      phase: 'RECRUIT_STUDENTS',
+      money: 0,
+      name: 'Recruit a high school',
+      actionDescription: 'Get a highschool to send you one kind of student',
+      bonusDescription: 'Choose a prep school instead'    
     },
     {
-      name: 'INTEREST', 
-      readableName: 'Collect Interest',
-      actionDescription: 'Collect interest from the endowment.', 
-      bonusDescription: '----'
-    }
+      phase: 'RECRUIT_TEACHERS',
+      money: 0,
+      name: 'Recruit Teachers',
+      actionDescription: 'Fresh teachers to man your spaces',
+      bonusDescription: 'Get extra teachers'    
+    },
   ],
-
   MatchStatus: {
-    ACTIVE: 'aa',
-    LOST: 'll',
-    WIN: 'win'
+    ACTIVE: 'ACTIVE',
+    LOSE: 'LOSE',
+    WIN: 'WIN'
   }
 };

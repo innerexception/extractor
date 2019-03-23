@@ -26,5 +26,22 @@ export default {
         borderRadius:'1em',
         background:'brown',
         cursor:'pointer'
+    },
+    highSchoolTile: {
+        com: {
+
+        },
+        eng: {
+
+        },
+        sci: {
+
+        },
+        law: {
+
+        },
+        dr: {
+            
+        }
     }
 }

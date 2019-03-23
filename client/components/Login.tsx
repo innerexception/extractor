@@ -1,5 +1,5 @@
-import React from 'react';
-import { onLogin } from './uiManager/Thunks.js'
+import * as React from 'react';
+import { onLogin } from './uiManager/Thunks'
 
 export default class Login extends React.Component {
     state = { name: '', sessionId: ''}
@@ -13,13 +13,13 @@ export default class Login extends React.Component {
                     <h3 style={{textAlign:'center', paddingTop:'0.25em'}}>My Team Is:</h3>
                     <input style={{...styles.loginInput, marginBottom:'1em'}} type="text" placeholder="Smurf Party" value={this.state.sessionId} onChange={(e)=>this.setState({sessionId:e.currentTarget.value})}/>
                 </div>
-                {this.state.name && <div style={styles.login} onClick={()=>onLogin(getUser(this.state.name), this.state.sessionId, this.props.server)}>Go Do Buisness -></div>}
+                {this.state.name && <div style={styles.login} onClick={()=>onLogin(getUser(this.state.name), this.state.sessionId)}>Go Do Buisness -></div>}
             </div>
         )
     }
 }
 
-const getUser = (name) => {
+const getUser = (name:string) => {
    return {name,id: Date.now() + ''+ Math.random()}
 }
 
@@ -34,5 +34,5 @@ const styles = {
         borderRadius: '0.5em',
         color: 'white',
     },
-    login: {color:'black', cursor:'pointer', textAlign:'right', paddingTop:'1em'}
+    login: {color:'black', cursor:'pointer', textAlign:'right' as 'right', paddingTop:'1em'}
 }

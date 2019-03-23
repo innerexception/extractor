@@ -1,13 +1,16 @@
-import { dispatch } from '../../../index'
-import Constants from '../../../Constants';
-import { toast } from '../uiManager/toast.js'
+import { dispatch } from '../../../client/App'
+const Constants = require('../../../Constants')
+import { toast } from './toast'
+import WS from '../../WebsocketClient'
+export const server = new WS()
+import { Phases, GraduateTypes, Boards, MatchStatus } from '../../../enum'
 
-export const onLogin = (currentUser, sessionId, server) => {
+export const onLogin = (currentUser:LocalUser, sessionId:string) => {
     dispatch({ type: Constants.ReducerActions.SET_USER, currentUser })
     server.publishMessage({type: Constants.ReducerActions.PLAYER_AVAILABLE, currentUser, sessionId})
 }
 
-export const onMatchStart = (currentUser, session, server) => {
+export const onMatchStart = (currentUser:LocalUser, session:Session) => {
     server.publishMessage({
         type: Constants.ReducerActions.MATCH_UPDATE, 
         sessionId: session.sessionId,
@@ -15,55 +18,59 @@ export const onMatchStart = (currentUser, session, server) => {
             status: Constants.MatchStatus.ACTIVE,
             activePlayerId: currentUser.id,
             bossId: currentUser.id,
-            phase: Constants.Phases.CHOOSE_ROLES,
-            players: session.players.map((player, i) => {
+            phase: Phases.CHOOSE_ROLES,
+            players: session.players.map((player:Player, i:number) => {
                 return {
                     ...player, 
                     money: 3+session.players.length,
                     vp: 0,
                     graduates: [],
-                    buildings: Constants.InitialPlayerBuildings,
-                    students: Constants.InitialPlayerStudents,
+                    buildings:  Constants.InitialPlayerBuildings,
+                    highSchools:  Constants.InitialPlayerStudents,
                     teachers: [],
                     turn: i,
-                    tilePlacements: 1
+                    tilePlacements: 1,
+                    role: null
                 }
             }),
             buildings: Constants.BuildingsPool,
-            tiles: getInitialTiles(),
+            highSchools: getInitialTiles(),
             quarries: 6,
             fundraising: [],
             graduatePool: {
-                [Constants.GraduateTypes.COMMUNICATIONS]: 20,
-                [Constants.GraduateTypes.ENGLISH]: 15,
-                [Constants.GraduateTypes.COMPSCI]: 10,
-                [Constants.GraduateTypes.LAWYER]: 10,
-                [Constants.GraduateTypes.DOCTOR]: 5
+                [GraduateTypes.COMMUNICATIONS]: 20,
+                [GraduateTypes.ENGLISH]: 15,
+                [GraduateTypes.COMPSCI]: 10,
+                [GraduateTypes.LAWYER]: 10,
+                [GraduateTypes.DOCTOR]: 5
             },
             hiringPool: session.players.length+1,
             teacherPool: 55,
-            roles: []
+            roles: Constants.InitialRoles
         }
     })
     toast.show({message: 'Match was begun.'})
 }
 
-export const onChooseRole = (role, currentUser, activeSession, server) => {
+export const onChooseRole = (role:Role, currentUser:LocalUser, activeSession:Session) => {
     activeSession.players.forEach((player) => { if(player.id === currentUser.id) player.role = role })
-    activeSession.phase = role.name
+    activeSession.phase = role.phase
     
-    if(role.name === Constants.Phases.RECRUIT_TEACHERS){
-        let emptySpots = 0
-        activeSession.players.forEach((player) => {
-            let amount = Math.round(activeSession.hiringPool/activeSession.players.length)
-            player.teachers = player.teachers.concat(new Array(amount).fill()
-                .map((teacher) => ({
-                    id: Date.now() + '' + Math.random()
+    if(role.phase === Phases.RECRUIT_TEACHERS){
+        let emptySpots = 0, amount =0
+        activeSession.players.forEach((player:Player) => {
+            amount = Math.round(activeSession.hiringPool/activeSession.players.length)
+            player.teachers = player.teachers.concat(new Array(amount).fill(null)
+                .map((teacher:Teacher) => ({
+                    id: Date.now() + '' + Math.random(),
+                    x: 0,
+                    y: 0,
+                    board:null
                 })))
-            player.buildings.forEach((row, i) => {
+            player.buildings.forEach((row:Array<Building>, i:number) => {
                 row.forEach((building,j) => {
                     if(building){
-                        let present = getTeachersForPosition(i,j,player.teachers,'campus')
+                        let present = getTeachersForPosition(i,j,player.teachers,Boards.Campus).length
                         emptySpots += building.capacity - present
                     }
                 })
@@ -78,45 +85,53 @@ export const onChooseRole = (role, currentUser, activeSession, server) => {
         activeSession.teacherPool -= refill
     }
 
-    if(role.name === Constants.Phases.COLLECT_INTEREST){
+    if(role.phase === Phases.COLLECT_INTEREST){
+        let nextPlayerIndex=0, nextPlayer
         activeSession.players.forEach((player) => {
             if(player.id === currentUser.id){
                 player.money++
+                nextPlayerIndex=player.turn
             }
         })
         
+        //choose new role
+        activeSession.phase = Phases.CHOOSE_ROLES
+        //set boss to next player
+        nextPlayer = activeSession.players[(nextPlayerIndex+1)%(activeSession.players.length)]
+        activeSession.bossId = nextPlayer.id
+        activeSession.activePlayerId = nextPlayer.id
+
         toast.show({message: 'You collected $1 in interest.'})
     }
 
     server.publishMessage({
-        type: Constants.ReducerActions.MATCH_UPDATE,
+        type:   Constants.ReducerActions.MATCH_UPDATE,
         session: activeSession,
         sessionId: activeSession.sessionId
     })
 
 }
 
-export const onSellGraduate = (graduate, currentUser, activeSession, server) => {
+export const onSellGraduate = (graduate:Graduate, currentUser:LocalUser, activeSession:Session) => {
     activeSession.fundraising.push(graduate)
     if(activeSession.fundraising.length >=4){
         //put these back in the graduate pool
-        activeSession.fundraising.forEach((graduate) => {
-            activeSession.graduatePool[graduate.type]++
+        activeSession.fundraising.forEach((graduate:Graduate) => {
+            (activeSession.graduatePool as any)[graduate.type]++
         })
         activeSession.fundraising = []
     }
     let nextPlayerIndex
-    activeSession.players.forEach((player) => { 
+    activeSession.players.forEach((player:Player) => { 
         if(player.id === currentUser.id){
-            player.buildings[building.x][building.y] = building
             nextPlayerIndex = player.turn
             player.money += graduate.value
-            player.graduates = player.graduates.filter((pgraduate) => graduate.id !== pgraduate.id)
+            player.graduates = player.graduates.filter((pgraduate:Graduate) => graduate.id !== pgraduate.id)
         } 
     })
     activeSession = prepareNextPlayer(activeSession, nextPlayerIndex)
     server.publishMessage({
-        type: Constants.ReducerActions.MATCH_UPDATE,
+        type:   Constants.ReducerActions.MATCH_UPDATE,
         session: activeSession,
         sessionId: activeSession.sessionId
     })
@@ -124,11 +139,12 @@ export const onSellGraduate = (graduate, currentUser, activeSession, server) => 
     toast.show({message: 'You got a graduate to give $'+graduate.value+'!'})
 }
 
-export const onProduceGraduates = (graduateType, currentUser, activeSession, server) => {
+export const onProduceGraduates = (graduateType:GraduateTypes, currentUser:LocalUser, activeSession:Session) => {
     let amountProduced
-    activeSession.players.forEach((player) => {
+    activeSession.players.forEach((player:Player) => {
         if(player.id === currentUser.id){
             //TODO check player highschools,
+            
             //for each highschool, check the type
             //if type requires building, check if building exists and is manned
             //then produce a graduate.
@@ -136,22 +152,22 @@ export const onProduceGraduates = (graduateType, currentUser, activeSession, ser
     })
 }
 
-export const onBuild = (building, currentUser, activeSession, server) => {
+export const onBuild = (x:number, y:number, building:Building, currentUser:LocalUser, activeSession:Session) => {
     let nextPlayerIndex
-    activeSession.players.forEach((player) => { 
+    activeSession.players.forEach((player:Player) => { 
         if(player.id === currentUser.id){
-            player.buildings[building.x][building.y] = {...building}
+            player.buildings[x][y] = {...building}
             nextPlayerIndex = player.turn
             player.money -= building.cost
         } 
     })
 
-    activeSession.buildings.forEach((pbuilding) => {if(pbuilding.name === building.name) pbuilding.count--})
+    activeSession.buildings.forEach((pbuilding:Building) => {if(pbuilding.name === building.name) pbuilding.count--})
 
     activeSession = prepareNextPlayer(activeSession, nextPlayerIndex)
 
     server.publishMessage({
-        type: Constants.ReducerActions.MATCH_UPDATE,
+        type:   Constants.ReducerActions.MATCH_UPDATE,
         session: activeSession,
         sessionId: activeSession.sessionId
     })
@@ -159,7 +175,7 @@ export const onBuild = (building, currentUser, activeSession, server) => {
     toast.show({message: 'You built a '+building.name})
 }
 
-export const onPlaceTeacher = (teacher, board, x, y, currentUser, activeSession, server) => {
+export const onPlaceTeacher = (teacher:Teacher, board:Boards, x:number, y:number, currentUser:LocalUser, activeSession:Session) => {
     activeSession.players.forEach((player) => {
         if(player.id === currentUser.id){
             player.teachers.forEach((pteacher) => {
@@ -178,19 +194,19 @@ export const onPlaceTeacher = (teacher, board, x, y, currentUser, activeSession,
     })
 
     server.publishMessage({
-        type: Constants.ReducerActions.MATCH_UPDATE,
+        type:   Constants.ReducerActions.MATCH_UPDATE,
         session: activeSession,
         sessionId: activeSession.sessionId
     })
 
 }
 
-export const onTilePlaced = (tile, x, y, currentUser, activeSession, server) => {
+export const onTilePlaced = (tileType:GraduateTypes, x:number, y:number, currentUser:LocalUser, activeSession:Session) => {
     let nextPlayerIndex, setNextPlayer
     activeSession.players.forEach((player) => {
         if(player.id === currentUser.id){
-            player.students[x][y]={   
-                type: tile
+            player.highSchools[x][y]={   
+                type: tileType
             }
             nextPlayerIndex = player.turn
             player.tilePlacements--;
@@ -206,22 +222,22 @@ export const onTilePlaced = (tile, x, y, currentUser, activeSession, server) => 
     }
 
     //Randomize 1 of the session tiles
-    activeSession.tiles[Math.floor(Math.random()*activeSession.tiles.length)] = getRandomTile()
+    activeSession.highSchools[Math.floor(Math.random()*activeSession.highSchools.length)] = getRandomTile()
 
     //If a quarry was picked, subtract from session total
-    if(tile === 'quarry')
+    if(tileType === 'quarry')
         activeSession.quarries--
 
     server.publishMessage({
-        type: Constants.ReducerActions.MATCH_UPDATE,
+        type:   Constants.ReducerActions.MATCH_UPDATE,
         session: activeSession,
         sessionId: activeSession.sessionId
     })
 
-    toast.show({message: tile+' high school has been recruited.'})
+    toast.show({message: tileType+' high school has been recruited.'})
 }
 
-export const onEndTurn = (currentUser, activeSession, server) => {
+export const onEndTurn = (currentUser:LocalUser, activeSession:Session) => {
     let nextPlayerIndex
     activeSession.players.forEach((player) => {
         if(player.id === currentUser.id){
@@ -232,7 +248,7 @@ export const onEndTurn = (currentUser, activeSession, server) => {
     activeSession = prepareNextPlayer(activeSession, nextPlayerIndex)
 
     server.publishMessage({
-        type: Constants.ReducerActions.MATCH_UPDATE,
+        type:   Constants.ReducerActions.MATCH_UPDATE,
         session: activeSession,
         sessionId: activeSession.sessionId
     })
@@ -240,64 +256,66 @@ export const onEndTurn = (currentUser, activeSession, server) => {
     toast.show({message: 'You ended your turn.'})
 }
 
-export const onMatchTick = (session, server) => {
+export const onMatchTick = (session:Session) => {
     server.publishMessage({
-        type: Constants.ReducerActions.MATCH_TICK,
-        sessionName: session.sessionName
+        type:   Constants.ReducerActions.MATCH_UPDATE,
+        sessionId: session.sessionId
     })
 }
 
-export const onMatchWon = (session, server) => {
+export const onMatchWon = (session:Session) => {
+    session.status = MatchStatus.WIN
     server.publishMessage({
-        type: Constants.ReducerActions.MATCH_WIN,
-        sessionName: session.sessionName
+        type:   Constants.ReducerActions.MATCH_UPDATE,
+        sessionId: session.sessionId
     })
 }
 
-export const onMatchLost = (session, server) => {
+export const onMatchLost = (session:Session) => {
+    session.status = MatchStatus.LOSE
     server.publishMessage({
-        type: Constants.ReducerActions.MATCH_LOST,
-        sessionName: session.sessionName
+        type:   Constants.ReducerActions.MATCH_UPDATE,
+        sessionId: session.sessionId
     })
 }
 
 export const onCleanSession = () => {
     dispatch({
-        type: Constants.ReducerActions.MATCH_CLEANUP
+        type:   Constants.ReducerActions.MATCH_CLEANUP
     })
 }
 
-const prepareNextPlayer = (activeSession, nextPlayerIndex) => {
+const prepareNextPlayer = (activeSession:Session, nextPlayerIndex:number) => {
     let nextPlayer = activeSession.players[(nextPlayerIndex+1)%(activeSession.players.length)]
     activeSession.activePlayerId = nextPlayer.id
 
     if(activeSession.activePlayerId === activeSession.bossId){
         //choose new role
-        activeSession.phase = Constants.Phases.CHOOSE_ROLES
+        activeSession.phase = Phases.CHOOSE_ROLES
         //set boss to next player
         nextPlayer = activeSession.players[(nextPlayerIndex+2)%(activeSession.players.length)]
         activeSession.bossId = nextPlayer.id
         activeSession.activePlayerId = nextPlayer.id
         //if all players have a chosen role, reset roles and put cash on unused ones
-        let emptyRole = activeSession.players.find((player) => !player.role)
+        let emptyRole = activeSession.players.find((player:Player) => !player.role)
         if(!emptyRole){
-            activeSession.players.forEach((player) => player.role = null)
+            activeSession.players.forEach((player:Player) => player.role = null)
             //TODO
-            activeSession.roles.forEach((role) => {if(!role.picked) role.money++})
+            //activeSession.roles.forEach((role:Role) => {if(!role.picked) role.money++})
         }
     }
     return activeSession
 }
 
 const getInitialTiles = () => {
-    return new Array(4).fill().map((tile) => {
+    return new Array(4).fill(null).map((tile) => {
         return getRandomTile()
     })
 }
 
 export const getRandomTile = () => {
-    let types = Object.keys(Constants.GraduateTypes)
-    return Constants.GraduateTypes[types[Math.floor(Math.random()*types.length)]]
+    let types = Object.keys(GraduateTypes)
+    return GraduateTypes[types[Math.floor(Math.random()*types.length)] as any] as GraduateTypes
 }
 
-const getTeachersForPosition = (x,y, teachers, board) => teachers.filter((teacher) => teacher.x === x && teacher.y === y && teacher.board === board)
+const getTeachersForPosition = (x:number,y:number, teachers:Array<Teacher>, board:Boards) => teachers.filter((teacher:Teacher) => teacher.x === x && teacher.y === y && teacher.board === board)

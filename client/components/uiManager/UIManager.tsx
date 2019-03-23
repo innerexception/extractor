@@ -1,16 +1,23 @@
-import React from 'react';
-import Lobby from '../Lobby.jsx'
-import Match from '../match/Match.jsx'
-import Login from '../Login.jsx'
+import * as React from 'react';
+import Lobby from '../Lobby'
+import Match from '../match/Match'
+import Login from '../Login'
 
-export default class UIManager extends React.Component {
+interface Props {
+    onInitServer: Function
+    currentUser: LocalUser
+    activeSession: Session
+    isConnected: boolean
+}
+
+export default class UIManager extends React.Component<Props> {
 
     componentDidMount(){
         this.props.onInitServer(this.props)
     }
 
     getComponent = () => {
-        if(!this.props.currentUser){
+        if(!this.props.currentUser.id){
             return <Login {...this.props}/>
         }
         else {
@@ -47,7 +54,7 @@ const styles = {
         borderRadius: '0.5em'
     },
     statusDot: {
-        position:'absolute', bottom:'0.5em', right:'0.5em',
+        position:'absolute' as 'absolute', bottom:'0.5em', right:'0.5em',
         display:'flex',
         color:'black',
         alignItems:'center'

@@ -1,61 +1,90 @@
-import React from 'react';
-import { onMatchTick, onPlaceTeacher, onEndTurn, onShipGraduates, onSellGraduate, onProduceGraduates, onChooseRole } from '../uiManager/Thunks.js'
+import * as React from 'react'
+import { onMatchTick, onPlaceTeacher, onEndTurn, onSellGraduate, onProduceGraduates, onChooseRole } from '../uiManager/Thunks'
 import { Button, Card, Dialog, Tooltip, Position, Icon, Radio, RadioGroup, Popover } from '@blueprintjs/core'
-import Constants from '../../../Constants.js'
-import Campus from './Campus.jsx'
-import StudentBody from './StudentBody.jsx'
-import AppStyles from '../../AppStyles.js';
-import { toast } from '../uiManager/toast.js'
+import { Phases } from '../../../enum'
+import Campus from './Campus'
+import StudentBody from './StudentBody'
+import AppStyles from '../../AppStyles';
+import { toast } from '../uiManager/toast'
 
-export default class Match extends React.Component {
+interface Props {
+    currentUser: LocalUser
+    activeSession: Session
+}
+
+interface State {
+    isActive: boolean
+    interval: NodeJS.Timeout | number
+    draggingTeacher: Teacher | null
+    sellingGraduate: Graduate | null
+    showFundraising: boolean
+    showJobSlots: boolean
+    showBuildings: boolean
+    showGraduatePool: boolean
+    showChooseRoles: boolean
+    showStudentTiles: boolean
+}
+
+export default class Match extends React.Component<Props, State> {
 
     state = {
-        interval: null
+        interval: 0,
+        isActive: false,
+        draggingTeacher: null as null,
+        sellingGraduate: null as null,
+        showFundraising: false,
+        showJobSlots:false,
+        showBuildings: false,
+        showGraduatePool: false,
+        showChooseRoles: false,
+        showStudentTiles: false
     }
 
     componentDidMount = () => {
-        this.setState({interval: this.state.isActive && setInterval(()=>this.checkTimer(), 1000)})
+        this.setState({interval: this.state.isActive ? setInterval(()=>this.checkTimer(), 1000) : 0})
     }
 
-    dropTeacher = (board, x, y) => {
+    dropTeacher = (board:Boards, x:number, y:number) => {
         if(this.state.draggingTeacher){
-            onPlaceTeacher(this.state.draggingTeacher, board, x, y, this.props.currentUser, this.props.activeSession, this.props.server)
+            onPlaceTeacher(this.state.draggingTeacher, board, x, y, this.props.currentUser, this.props.activeSession)
             this.setState({draggingTeacher: null})
         }
     }
 
-    onProduce = (graduateType) => {
-        if(this.props.activeSession.graduatePool[graduateType] <= 0){
+    onProduce = (graduateType:GraduateTypes) => {
+        if((this.props.activeSession.graduatePool as any)[graduateType] <= 0){
             toast.show({message: 'No graduates of this type left.'})
             return
         }
-        onProduceGraduates(graduateType, this.props.currentUser, this.props.activeSession, this.props.server)
+        onProduceGraduates(graduateType, this.props.currentUser, this.props.activeSession)
     }
 
     onSellGraduate = () => {
-        if(this.props.activeSession.fundraising.find((graduate) => graduate.type === this.state.sellingGraduate.type)){
-            toast.show({message: "Can't shakedown more than 1 grad of the same type."})
-            //TODO add building check for selling
+        if(this.state.sellingGraduate !== null){
+            if(this.props.activeSession.fundraising.find((graduate) => graduate.type === (this.state.sellingGraduate as Graduate).type)){
+                toast.show({message: "Can't shakedown more than 1 grad of the same type."})
+                //TODO add building check for selling
+            }
+            else {
+                onSellGraduate(this.state.sellingGraduate, this.props.currentUser, this.props.activeSession)
+            }
+            this.setState({sellingGraduate:null, showFundraising: false})
         }
-        else {
-            onSellGraduate(this.state.sellingGraduate, this.props.currentUser, this.props.activeSession, this.props.server)
-        }
-        this.setState({sellingGraduate:null, showFundraising: false})
     }
 
     endTurn = () => {
         clearInterval(this.state.interval)
-        onEndTurn(this.props.currentUser, this.props.activeSession.sessionName, this.props.server)
+        onEndTurn(this.props.currentUser, this.props.activeSession)
     }
 
     checkTimer = () => {
         if(this.props.activeSession.ticks >= this.props.activeSession.turnTickLimit){
             this.endTurn()
         }
-        else onMatchTick(this.props.activeSession, this.props.server)
+        else onMatchTick(this.props.activeSession)
     }
 
-    roleNotPicked = (role) => {
+    roleNotPicked = (role:Role) => {
         const pickedRoles = this.props.activeSession.players.map((player) => player.role).filter((role) => role)
         return !pickedRoles.find((prole) => prole.name === role.name)
     }
@@ -73,20 +102,18 @@ export default class Match extends React.Component {
                 <div style={{display:'flex'}}>
                     <Campus player={me} 
                             activeSession={this.props.activeSession}
-                            onTeacherSelected={(teacher)=>this.setState({draggingTeacher: teacher})}
-                            server={this.props.server}
-                            onDropTeacher={(board, x, y)=>this.dropTeacher(board, x, y)}
+                            onTeacherSelected={(teacher:Teacher)=>this.setState({draggingTeacher: teacher})}
+                            onDropTeacher={(board:Boards, x:number, y:number)=>this.dropTeacher(board, x, y)}
                             showBuildings={this.state.showBuildings}
-                            isActive={(this.props.activeSession.phase === Constants.Phases.BUILD || this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
+                            isActive={(this.props.activeSession.phase === Phases.BUILD || this.props.activeSession.phase === Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
                     <StudentBody player={me} 
                                  activeSession={this.props.activeSession}
-                                 server={this.props.server}
-                                 onTeacherSelected={(teacher)=>this.setState({draggingTeacher: teacher})}
-                                 onDropTeacher={(board, x, y)=>this.dropTeacher(board, x, y)}
-                                 isActive={(this.props.activeSession.phase === Constants.Phases.RECRUIT_STUDENTS || this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
+                                 onTeacherSelected={(teacher:Teacher)=>this.setState({draggingTeacher: teacher})}
+                                 onDropTeacher={(board:Boards, x:number, y:number)=>this.dropTeacher(board, x, y)}
+                                 isActive={(this.props.activeSession.phase === Phases.RECRUIT_STUDENTS || this.props.activeSession.phase === Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
                     {me.role ? 
                         <div style={styles.roleCard}>
-                            <h4>{me.role.readableName}</h4>
+                            <h4>{me.role.name}</h4>
                             <hr/>
                             <h5>{me.role.actionDescription}</h5>
                             <h5>{me.role.bonusDescription}</h5>
@@ -97,11 +124,11 @@ export default class Match extends React.Component {
                         <h5>$: {me.money}</h5>
                         <h5>Graduates: </h5>
                         {me.graduates.map((graduate) => 
-                            <div style={this.props.activeSession.phase === Constants.Phases.FUNDRAISE ? styles.active : styles.disabled}>
-                                <div style={styles[graduate.type]} onClick={this.setState({sellingGraduate: graduate, showFundraising: true})}/>
+                            <div style={this.props.activeSession.phase === Phases.FUNDRAISE ? AppStyles.flex : AppStyles.disabledSection}>
+                                <div style={(AppStyles.highSchoolTile as any)[graduate.type]} onClick={()=>this.setState({sellingGraduate: graduate, showFundraising: true})}/>
                                 <h5>{graduate.type} : {me.graduates.filter((mgraduate) => mgraduate.type === graduate.type).length}</h5>
                             </div>)}
-                        <div style={this.props.activeSession.phase === Constants.Phases.RECRUIT_TEACHERS && activePlayer.id === me.id ? AppStyles.flex : AppStyles.disabledSection}>
+                        <div style={this.props.activeSession.phase === Phases.RECRUIT_TEACHERS && activePlayer.id === me.id ? AppStyles.flex : AppStyles.disabledSection}>
                             <h6>Unassigned Teachers:</h6>
                             {me.teachers.filter((teacher)=>!teacher.board).map((teacher) => 
                                 <div style={AppStyles.teacher} onMouseDown={()=>this.setState({draggingTeacher: teacher})}/>)}
@@ -111,7 +138,7 @@ export default class Match extends React.Component {
                     <div style={{marginTop:'0.5em', marginBottom:'0.5em'}}>
                         <h6 style={{margin:0}}>Turn</h6>
                         <div style={{width: '100%', height:'0.5em', border: '1px solid'}}>
-                            <div style={{width: (100-((this.props.activeSession.ticks / this.props.activeSession.tickLimit)*100))+'%', background:'orange', height:'100%', transition:'width 250ms'}}/>
+                            <div style={{width: (100-((this.props.activeSession.ticks / this.props.activeSession.turnTickLimit)*100))+'%', background:'orange', height:'100%', transition:'width 250ms'}}/>
                         </div>
                     </div>
                 </div>
@@ -123,7 +150,7 @@ export default class Match extends React.Component {
                     <div style={styles.toggleButton} onClick={()=>this.setState({showFundraising: !this.state.showFundraising})}>Show/Hide Fundraising</div>
                 </div>
                 <Dialog
-                    isOpen={this.state.showChooseRoles || this.props.activeSession.phase === Constants.Phases.CHOOSE_ROLES}
+                    isOpen={this.state.showChooseRoles || this.props.activeSession.phase === Phases.CHOOSE_ROLES}
                     style={styles.modal}
                     onClose={() => this.setState({ showChooseRoles: false })}
                 >
@@ -131,14 +158,14 @@ export default class Match extends React.Component {
                         <div>
                             {activePlayer.name + ' is picking...'}
                             {this.props.activeSession.players.filter((player) => player.id !== activePlayer.id).map((player) => 
-                                <div>{player.name + ': '+ (player.role ? player.role.readableName : 'Not picked')}</div>
+                                <div>{player.name + ': '+ (player.role ? player.role.name : 'Not picked')}</div>
                             )}
                         </div>
                         {activePlayer.id === this.props.currentUser.id && 
                         <div>
-                            {Constants.Roles.filter(this.roleNotPicked).map((role) => 
-                                <div style={styles.toggleButton} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession, this.props.server)}>
-                                    {role.readableName}
+                            {this.props.activeSession.roles.filter(this.roleNotPicked).map((role:Role) => 
+                                <div style={styles.toggleButton} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession)}>
+                                    {role.name}
                                 </div>)}
                         </div>}
                     </div>
@@ -153,7 +180,7 @@ export default class Match extends React.Component {
                         <div>
                             {this.props.activeSession.fundraising.map((graduate) => 
                                 graduate ? 
-                                <div style={styles[graduate.type]}/> : 
+                                <div style={(AppStyles.highSchoolTile as any)[graduate.type]}/> : 
                                 <div onClick={this.onSellGraduate} style={styles.emptyFundSpot}/>    
                             )}
                         </div>
@@ -166,14 +193,13 @@ export default class Match extends React.Component {
                 >
                     <div style={{display:'flex'}}>
                         <h4>Choose what kind of graduate you will make:</h4>
-                        {Object.keys(this.props.activeSession.graduatePool).map((key) => 
-                            <div style={styles[key]} onClick={()=>this.onProduce(key)}>
-                                {this.props.activeSession.graduatePool[key]} left
+                        {Object.keys(this.props.activeSession.graduatePool).map((key:GraduateTypes) => 
+                            <div style={(AppStyles.highSchoolTile as any)[key]} onClick={()=>this.onProduce(key)}>
+                                {(this.props.activeSession.graduatePool as any)[key]} left
                             </div>
                         )}
                     </div>
                 </Dialog>
-                <Dialog>Next Student Tiles</Dialog>
                 <Dialog>Industry Job Slots</Dialog>
             </div>
         )
@@ -181,9 +207,10 @@ export default class Match extends React.Component {
 }
 
 const styles = {
+    modal: {},
     frame: {
         padding:'1em',
-        position:'relative'
+        position:'relative' as 'relative'
     },
     choiceBtn: {
         margin: 0,
@@ -193,7 +220,7 @@ const styles = {
         borderRadius: '5px',
     },
     disabled: {
-        position:'absolute',
+        position:'absolute' as 'absolute',
         top:0,
         left:0,
         background:'black',
@@ -206,5 +233,7 @@ const styles = {
         border:'1px solid',
         borderRadius: '3px',
         padding:'0.5em'
-    }
+    },
+    emptyFundSpot: {},
+    roleCard: {}
 }

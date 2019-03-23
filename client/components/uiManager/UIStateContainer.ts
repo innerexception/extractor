@@ -1,17 +1,17 @@
 import { connect } from 'react-redux'
-import { login, decodeWSMessage, initServer, connected, connectionError, setUser } from './Actions'
-import UIManager from './UIManager.jsx'
+import { decodeWSMessage, initServer, connected, connectionError } from './Actions'
+import UIManager from './UIManager'
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state:RState) => {
     return state
 };
 
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = (dispatch:any) => {
     return {
-        onWSMessage: (data) => {
+        onWSMessage: (data:any) => {
             dispatch(decodeWSMessage(data))
         },
-        onInitServer: (props) => {
+        onInitServer: (props:any) => {
             dispatch(initServer(props))
         },
         onConnected: () => {

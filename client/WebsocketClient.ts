@@ -1,20 +1,25 @@
-import Constants from '../Constants'
+const Constants = require('../Constants.js')
 
 export default class WebsocketClient {
 
-    constructor(args){
-        this.onConnected = args.onConnected
-        this.onConnectionError = args.onConnectionError
-        this.onWSMessage = args.onWSMessage
-        this.launch(Constants.ApiUrl)
+    onConnected: Function
+    onConnectionError: Function
+    onWSMessage: Function
+    websocket: any
+
+    setProps = (args:any) => {
+      this.onConnected = args.onConnected
+      this.onConnectionError = args.onConnectionError
+      this.onWSMessage = args.onWSMessage
+      this.launch(Constants.ApiUrl)
     }
 
-    launch = (url) => {
-        this.websocket = new ReconnectingWebSocket(url);
+    launch = (url:string) => {
+        this.websocket = ReconnectingWebSocket(url)
         console.log('ws: connecting');
         this.websocket.onopen = this.onConnected
         this.websocket.onerror = this.onConnectionError
-        this.websocket.onmessage = (e) => {
+        this.websocket.onmessage = (e:any) => {
             if(e){
                 var data = JSON.parse(e.data);
                 this.onWSMessage(data);
@@ -26,7 +31,7 @@ export default class WebsocketClient {
         this.websocket.disconnect()
     }
 
-    publishMessage= (msg) => {
+    publishMessage= (msg:any) => {
       var message = JSON.stringify(msg)
       if(message) {
           this.websocket.send(message);
@@ -34,75 +39,47 @@ export default class WebsocketClient {
     }
 };
 
-const ReconnectingWebSocket = function (url, protocols) {
-
-  protocols = protocols || [];
-
-
+const ReconnectingWebSocket = (url:string) => {
 
   // These can be altered by calling code.
-
   this.debug = false;
-
   this.reconnectInterval = 2000;
-
   this.timeoutInterval = 5000;
 
-
-
   var self = this;
-
-  var ws;
-
+  var ws:any;
   var forcedClose = false;
-
   var timedOut = false;
 
-
-
   this.url = url;
-
-  this.protocols = protocols;
-
+  this.protocols = [];
   this.readyState = WebSocket.CONNECTING;
 
   this.URL = url; // Public API
 
-
-
-  this.onopen = function (event) {
+  this.onopen = function (event:any) {
 
   };
 
-
-
-  this.onclose = function (event) {
+  this.onclose = function (event:any) {
 
   };
 
-
-
-  this.onconnecting = function (event) {
+  this.onconnecting = function (event:any) {
 
   };
 
-
-
-  this.onmessage = function (event) {
+  this.onmessage = function (event:any) {
 
   };
 
-
-
-  this.onerror = function (event) {
+  this.onerror = function (event:any) {
 
   };
 
+  function connect(reconnectAttempt:any) {
 
-
-  function connect(reconnectAttempt) {
-
-    ws = new WebSocket(url, protocols);
+    ws = new WebSocket(url, []);
 
 
 
@@ -124,7 +101,7 @@ const ReconnectingWebSocket = function (url, protocols) {
 
 
 
-    ws.onopen = function (event) {
+    ws.onopen = function (event:any) {
 
       clearTimeout(timeout);
 
@@ -138,7 +115,7 @@ const ReconnectingWebSocket = function (url, protocols) {
 
 
 
-    ws.onclose = function (event) {
+    ws.onclose = function (event:any) {
 
       clearTimeout(timeout);
 
@@ -174,7 +151,7 @@ const ReconnectingWebSocket = function (url, protocols) {
 
 
 
-    ws.onmessage = function (event) {
+    ws.onmessage = function (event:any) {
 
       self.onmessage(event);
 
@@ -182,7 +159,7 @@ const ReconnectingWebSocket = function (url, protocols) {
 
 
 
-    ws.onerror = function (event) {
+    ws.onerror = function (event:any) {
 
       self.onerror(event);
 
@@ -190,13 +167,9 @@ const ReconnectingWebSocket = function (url, protocols) {
 
   }
 
-
-
   connect(url);
 
-
-
-  this.send = function (data) {
+  this.send = function (data:any) {
 
     if (ws) {
 
@@ -210,8 +183,6 @@ const ReconnectingWebSocket = function (url, protocols) {
 
   };
 
-
-
   this.close = function () {
 
     forcedClose = true;
@@ -223,8 +194,6 @@ const ReconnectingWebSocket = function (url, protocols) {
     }
 
   };
-
-
 
   /**
 
@@ -243,6 +212,8 @@ const ReconnectingWebSocket = function (url, protocols) {
     }
 
   };
+
+  return this
 
 }
 

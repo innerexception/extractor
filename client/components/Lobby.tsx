@@ -1,14 +1,18 @@
-import React from 'react';
-import { onMatchStart } from './uiManager/Thunks.js'
+import * as React from 'react';
+import { onMatchStart } from './uiManager/Thunks'
 
-export default class Lobby extends React.Component {
+interface Props { 
+    activeSession:Session
+    currentUser:LocalUser
+}
+
+export default class Lobby extends React.Component<Props> {
 
     startMatch = () => {
         console.log(this.props)
         onMatchStart(
             this.props.currentUser, 
-            this.props.activeSession, 
-            this.props.server)
+            this.props.activeSession)
     }
 
     getErrors = () => {
@@ -18,9 +22,9 @@ export default class Lobby extends React.Component {
     render(){
         return (
             <div style={{width:'100%'}}>
-                <div style={{padding:'1em'}}>Meanwhile in Conference Room 3F at {this.props.activeSession.sessionName}'s HQ, the team assembles...</div>
+                <div style={{padding:'1em'}}>Meanwhile in Conference Room 3F at {this.props.activeSession.sessionId}'s HQ, the team assembles...</div>
                 <div style={{padding:'1em', display:'flex', alignItems:'center', overflowX:'auto'}}>
-                    {this.props.activeSession.players.map((player) => 
+                    {this.props.activeSession.players.map((player:Player) => 
                         <div style={styles.nameTag}>
                             <input style={styles.loginInput} type="text" value={player.name}/>
                         </div>
@@ -38,7 +42,7 @@ const styles = {
         background: 'red',
         borderRadius: '0.5em',
         color: 'white',
-        pointerEvents:'none',
+        pointerEvents:'none' as 'none',
         width:'13em',
         marginRight:'1em'
     },
