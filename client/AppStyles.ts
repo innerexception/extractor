@@ -21,27 +21,28 @@ export default {
         display:'flex'
     },
     teacher: {
-        height:'2em',
-        width:'2em',
-        borderRadius:'1em',
-        background:'brown',
-        cursor:'pointer'
+        height: '2em',
+        width: '2em',
+        borderRadius: '1em',
+        background: 'brown',
+        top:'5px',
+        left:'5px'
     },
     highSchoolTile: {
         com: {
-
+            background:'yellow'
         },
         eng: {
-
+            background:'blue'
         },
-        sci: {
-
+        comp: {
+            background:'red'
         },
         law: {
-
+            background: 'black'
         },
         dr: {
-            
-        }
+            background: 'orange'
+        },
     }
 }

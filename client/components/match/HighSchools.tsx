@@ -17,7 +17,7 @@ interface State {
     tileY:number
 }
 
-export default class StudentBody extends React.Component<Props, State> {
+export default class HighSchools extends React.Component<Props, State> {
     state = { showTiles: false, tileX: 0, tileY:0 }
 
     placeTile = (tileType:GraduateTypes) => {
@@ -33,9 +33,9 @@ export default class StudentBody extends React.Component<Props, State> {
                     student ? 
                         <div onMouseUp={()=>this.props.onDropTeacher('highschools', i,j)} 
                              style={styles.studentTile}>
-                            <div style={{...(AppStyles.highSchoolTile as any)[student.type], ...styles.studentTile}}/>
+                            <div style={{...(AppStyles.highSchoolTile as any)[student.type]}}/>
                             {getTeachersForPosition(i,j, this.props.player.teachers).map((teacher) => 
-                                    <div style={AppStyles.teacher} 
+                                    <div style={{...AppStyles.teacher, position:'absolute'}} 
                                          onMouseDown={()=>this.props.onTeacherSelected(teacher)}/>)}
                         </div> :
                         <div style={styles.studentTile}>
@@ -68,17 +68,11 @@ const getTeachersForPosition = (x:number,y:number, teachers:Array<Teacher>) =>
 
 const styles = {
     modal: {},
-    teacher: {
-        height: '2em',
-        width: '2em',
-        borderRadius: '1em',
-        background: 'brown'
-    },
     studentTile: {
         height:'3em',
         width:'3em',
         border: '1px solid',
-        padding:'2px'
+        position:'relative' as 'relative'
     },
     emptyStudent: {
         height: '2em',
@@ -88,21 +82,6 @@ const styles = {
     },
     quarry: {
         background: 'gray'
-    },
-    com: {
-        background:'yellow'
-    },
-    eng: {
-        background:'blue'
-    },
-    comp: {
-        background:'red'
-    },
-    law: {
-        background: 'black'
-    },
-    dr: {
-        background: 'orange'
     },
     random: {
         background: 'pink'

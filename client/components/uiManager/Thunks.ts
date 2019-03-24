@@ -63,8 +63,8 @@ export const onChooseRole = (role:Role, currentUser:LocalUser, activeSession:Ses
             player.teachers = player.teachers.concat(new Array(amount).fill(null)
                 .map((teacher:Teacher) => ({
                     id: Date.now() + '' + Math.random(),
-                    x: 0,
-                    y: 0,
+                    x: null,
+                    y: null,
                     board:null
                 })))
             player.buildings.forEach((row:Array<Building>, i:number) => {
@@ -180,7 +180,7 @@ export const onPlaceTeacher = (teacher:Teacher, board:Boards, x:number, y:number
         if(player.id === currentUser.id){
             player.teachers.forEach((pteacher) => {
                 if(teacher.id === pteacher.id){
-                    if(!getTeachersForPosition(x,y,player.teachers, board)){
+                    if(getTeachersForPosition(x,y,player.teachers, board).length === 0){
                         pteacher.x = x
                         pteacher.y = y
                         pteacher.board = board

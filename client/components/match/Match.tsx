@@ -3,7 +3,7 @@ import { onMatchTick, onPlaceTeacher, onEndTurn, onSellGraduate, onProduceGradua
 import { Button, Card, Dialog, Tooltip, Position, Icon, Radio, RadioGroup, Popover } from '@blueprintjs/core'
 import { Phases } from '../../../enum'
 import Campus from './Campus'
-import StudentBody from './StudentBody'
+import HighSchools from './HighSchools'
 import AppStyles from '../../AppStyles';
 import { toast } from '../uiManager/toast'
 
@@ -106,7 +106,7 @@ export default class Match extends React.Component<Props, State> {
                             onDropTeacher={(board:Boards, x:number, y:number)=>this.dropTeacher(board, x, y)}
                             showBuildings={this.state.showBuildings}
                             isActive={(this.props.activeSession.phase === Phases.BUILD || this.props.activeSession.phase === Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
-                    <StudentBody player={me} 
+                    <HighSchools player={me} 
                                  activeSession={this.props.activeSession}
                                  onTeacherSelected={(teacher:Teacher)=>this.setState({draggingTeacher: teacher})}
                                  onDropTeacher={(board:Boards, x:number, y:number)=>this.dropTeacher(board, x, y)}
