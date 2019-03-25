@@ -13,3 +13,11 @@ export enum GraduateTypes {
 }
 export enum Boards {Campus='campus',HighSchools='hs'}
 export enum MatchStatus {ACTIVE='ACTIVE',WIN='WIN',LOSE='LOSE'}
+export enum Buildings {
+    ENGLISH_DEPT_S='ENGLISH_DEPT_S',
+    ENGLISH_DEPT_L='ENGLISH_DEPT_L',
+    COMP_SCI_S='COMP_SCI_S',
+    COMP_SCI_L='COMP_SCI_L',
+    LAW='LAW',
+    MED='MED'
+}
