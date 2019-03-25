@@ -165,7 +165,9 @@ export default class Match extends React.Component<Props, State> {
                         <div>
                             {this.props.activeSession.roles.filter(this.roleNotPicked).map((role:Role) => 
                                 <div style={styles.toggleButton} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession)}>
-                                    {role.name}
+                                    <h6>{role.name}</h6>
+                                    <h6>${role.money}</h6> 
+                                    <h6>{role.actionDescription}</h6> 
                                 </div>)}
                         </div>}
                     </div>

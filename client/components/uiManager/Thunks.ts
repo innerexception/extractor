@@ -55,6 +55,8 @@ export const onMatchStart = (currentUser:LocalUser, session:Session) => {
 export const onChooseRole = (role:Role, currentUser:LocalUser, activeSession:Session) => {
     activeSession.players.forEach((player) => { if(player.id === currentUser.id) player.role = role })
     activeSession.phase = role.phase
+
+    activeSession.roles.forEach((role:Role) => {if(role.name === role.name) role.picked=true})
     
     if(role.phase === Phases.RECRUIT_TEACHERS){
         let emptySpots = 0, amount =0
@@ -100,6 +102,12 @@ export const onChooseRole = (role:Role, currentUser:LocalUser, activeSession:Ses
         nextPlayer = activeSession.players[(nextPlayerIndex+1)%(activeSession.players.length)]
         activeSession.bossId = nextPlayer.id
         activeSession.activePlayerId = nextPlayer.id
+        //if all players have a chosen role, reset roles and put cash on unused ones
+        let emptyRole = activeSession.players.find((player:Player) => !player.role)
+        if(!emptyRole){
+            activeSession.players.forEach((player:Player) => player.role = null)
+            activeSession.roles.forEach((role:Role) => {if(!role.picked) role.money++; role.picked=false})
+        }
 
         toast.show({message: 'You collected $1 in interest.'})
     }
@@ -140,14 +148,76 @@ export const onSellGraduate = (graduate:Graduate, currentUser:LocalUser, activeS
 }
 
 export const onProduceGraduates = (graduateType:GraduateTypes, currentUser:LocalUser, activeSession:Session) => {
-    let amountProduced
+    let amountProduced = 0, highschoolsOfType = 0, teachersOfType = 0
     activeSession.players.forEach((player:Player) => {
         if(player.id === currentUser.id){
             //TODO check player highschools,
+            player.highSchools.forEach((row) => row.forEach((highSchool:HighSchool) => {
+                if(highSchool.type === graduateType) highschoolsOfType++
+            }))
+            if(graduateType === GraduateTypes.COMMUNICATIONS){
+                amountProduced += highschoolsOfType
+            }
+            else {
+                player.buildings.forEach((row, i) => row.forEach((building:Building, j) => {
+                    let teachers = getTeachersForPosition(i,j,player.teachers,Boards.Campus)
+                    switch(graduateType){
+                        case GraduateTypes.ENGLISH: 
+                            switch(building.id){
+                                case Buildings.ENGLISH_DEPT_S:
+                                    teachersOfType+= teachers.length
+                                    break
+                                case Buildings.ENGLISH_DEPT_L: 
+                                    teachersOfType+= teachers.length
+                                    break
+                            }
+                            break
+                        case GraduateTypes.COMPSCI: 
+                            switch(building.id){
+                                case Buildings.COMP_SCI_S:
+                                    teachersOfType+= teachers.length
+                                    break
+                                case Buildings.COMP_SCI_L: 
+                                    teachersOfType+= teachers.length
+                                    break
+                            }
+                            break
+                        case GraduateTypes.DOCTOR: 
+                            switch(building.id){
+                                case Buildings.MED:
+                                    teachersOfType+= teachers.length
+                                    break
+                            }
+                            break
+                        case GraduateTypes.LAWYER: 
+                            switch(building.id){
+                                case Buildings.LAW:
+                                    teachersOfType+= teachers.length
+                                    break
+                            }
+                            break
+                    }
+                }))
+            }
+            amountProduced = teachersOfType
             
-            //for each highschool, check the type
-            //if type requires building, check if building exists and is manned
+            const grads = new Array<Graduate>(amountProduced).fill({
+                id: Date.now()+''+Math.random(),
+                type: graduateType,
+                value: getValue(graduateType)
+            })
             //then produce a graduate.
+            player.graduates = player.graduates.concat(grads)
+
+            activeSession = prepareNextPlayer(activeSession, player.turn)
+
+            server.publishMessage({
+                type:   Constants.ReducerActions.MATCH_UPDATE,
+                session: activeSession,
+                sessionId: activeSession.sessionId
+            })
+
+            toast.show({message: 'Produced '+grads.length+' '+graduateType+' graduates'})
         }
     })
 }
@@ -300,8 +370,7 @@ const prepareNextPlayer = (activeSession:Session, nextPlayerIndex:number) => {
         let emptyRole = activeSession.players.find((player:Player) => !player.role)
         if(!emptyRole){
             activeSession.players.forEach((player:Player) => player.role = null)
-            //TODO
-            //activeSession.roles.forEach((role:Role) => {if(!role.picked) role.money++})
+            activeSession.roles.forEach((role:Role) => {if(!role.picked) role.money++; role.picked=false})
         }
     }
     return activeSession
@@ -319,3 +388,14 @@ export const getRandomTile = () => {
 }
 
 const getTeachersForPosition = (x:number,y:number, teachers:Array<Teacher>, board:Boards) => teachers.filter((teacher:Teacher) => teacher.x === x && teacher.y === y && teacher.board === board)
+
+const getValue = (type:GraduateTypes) => {
+    switch(type){
+        case GraduateTypes.COMMUNICATIONS: return 0
+        case GraduateTypes.ENGLISH: return 1
+        case GraduateTypes.COMPSCI: return 2
+        case GraduateTypes.LAWYER: return 3
+        case GraduateTypes.DOCTOR: return 4
+        default: return 0
+    }
+}

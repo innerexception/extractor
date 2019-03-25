@@ -40,7 +40,7 @@ export default class HighSchools extends React.Component<Props, State> {
                         </div> :
                         <div style={styles.studentTile}>
                             <div onClick={()=>this.setState({showTiles:true, tileX: i, tileY: j})} 
-                                style={styles.emptyStudent}/>
+                                style={AppStyles.emptyStudent}/>
                         </div>
                     )}
                 </div>
@@ -73,12 +73,6 @@ const styles = {
         width:'3em',
         border: '1px solid',
         position:'relative' as 'relative'
-    },
-    emptyStudent: {
-        height: '2em',
-        width: '2em',
-        borderRadius: '1em',
-        border: '1px solid gray'
     },
     quarry: {
         background: 'gray'

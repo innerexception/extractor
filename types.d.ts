@@ -13,6 +13,14 @@ declare enum Phases {
     PLACE_GRADUATES='PLACE_GRADUATES',
     COLLECT_INTEREST='COLLECT_INTEREST'
 }
+declare enum Buildings {
+    ENGLISH_DEPT_S='ENGLISH_DEPT_S',
+    ENGLISH_DEPT_L='ENGLISH_DEPT_L',
+    COMP_SCI_S='COMP_SCI_S',
+    COMP_SCI_L='COMP_SCI_L',
+    LAW='LAW',
+    MED='MED'
+}
 
 interface LocalUser {
     name:string
@@ -51,10 +59,11 @@ interface Building {
     count: number
     cost: number
     capacity: number
+    id:string
 }
 
 interface HighSchool {
-    type: string
+    type: GraduateTypes
 }
 
 interface Role {
@@ -62,7 +71,8 @@ interface Role {
     money: number
     name: string
     actionDescription: string
-    bonusDescription: string
+    bonusDescription: string,
+    picked: boolean
 }
 
 interface Session {

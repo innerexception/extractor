@@ -40,6 +40,9 @@ export default class Campus extends React.Component<Props,State> {
                         <div onMouseUp={()=>this.props.onDropTeacher('campus', i,j)} 
                              style={building.capacity > 1 ? styles.largeBuilding : styles.smallBuilding}>
                             {building.name}
+                            {new Array(building.capacity).fill(null).map((empty) => 
+                                <div style={AppStyles.emptyStudent}/>    
+                            )}
                             {getTeachersForPosition(i,j, this.props.player.teachers).map((teacher) => 
                                     <div style={AppStyles.teacher} 
                                          onMouseDown={()=>this.props.onTeacherSelected(teacher)}/>)}
@@ -80,13 +83,15 @@ const styles = {
         height: '2em',
         width:'4em',
         border: '1px solid blue',
-        padding:'2px'
+        padding:'2px',
+        position: 'relative' as 'relative'
     },
     largeBuilding: {
         height: '2em',
         width:'4em',
         border: '1px solid purple',
-        padding:'2px'
+        padding:'2px',
+        position: 'relative' as 'relative'
     },
     emptyBuilding: {
         height: '2em',

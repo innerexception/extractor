@@ -44,5 +44,11 @@ export default {
         dr: {
             background: 'orange'
         },
-    }
+    },
+    emptyStudent: {
+        height: '2em',
+        width: '2em',
+        borderRadius: '1em',
+        border: '1px solid gray'
+    },
 }
