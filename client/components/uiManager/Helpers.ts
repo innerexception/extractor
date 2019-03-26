@@ -1,14 +1,17 @@
 import { Phases, GraduateTypes, Boards, Buildings } from '../../../enum'
 
 export const getProductionCount = (player:Player, graduateType:GraduateTypes) => {
-    let amountProduced = 0, highschoolsOfType=0, teachersOfType=0
+    let highschoolsOfType=0, teachersOfType=0
 
-    player.highSchools.forEach((row) => row.forEach((highSchool:HighSchool) => {
-        if(highSchool && highSchool.type === graduateType) highschoolsOfType++
+    player.highSchools.forEach((row, i) => row.forEach((highSchool:HighSchool, j) => {
+        if(highSchool && highSchool.type === graduateType){
+            if(getTeachersForPosition(i,j,player.teachers, Boards.HighSchools).length>0)
+                highschoolsOfType++
+        }
     }))
 
     if(graduateType === GraduateTypes.COMMUNICATIONS){
-        amountProduced += highschoolsOfType
+        teachersOfType = highschoolsOfType
     }
     else {
         player.buildings.forEach((row, i) => row.forEach((building:Building, j) => {
@@ -53,7 +56,7 @@ export const getProductionCount = (player:Player, graduateType:GraduateTypes) =>
             }
         }))
     }
-    return Math.min(amountProduced, teachersOfType)
+    return Math.min(highschoolsOfType, teachersOfType)
 }
 
 export const getTeachersForPosition = (x:number,y:number, teachers:Array<Teacher>, board:Boards) => teachers.filter((teacher:Teacher) => teacher.x === x && teacher.y === y && teacher.board === board)
