@@ -4,6 +4,8 @@ import { toast } from './toast'
 import WS from '../../WebsocketClient'
 export const server = new WS()
 import { Phases, GraduateTypes, Boards, MatchStatus } from '../../../enum'
+import { getTeachersForPosition, getProductionCount,
+         getGradValue, getInitialTiles, prepareNextPlayer, getRandomTile } from '../uiManager/Helpers'
 
 export const onLogin = (currentUser:LocalUser, sessionId:string) => {
     dispatch({ type: Constants.ReducerActions.SET_USER, currentUser })
@@ -148,63 +150,14 @@ export const onSellGraduate = (graduate:Graduate, currentUser:LocalUser, activeS
 }
 
 export const onProduceGraduates = (graduateType:GraduateTypes, currentUser:LocalUser, activeSession:Session) => {
-    let amountProduced = 0, highschoolsOfType = 0, teachersOfType = 0
     activeSession.players.forEach((player:Player) => {
         if(player.id === currentUser.id){
-            //TODO check player highschools,
-            player.highSchools.forEach((row) => row.forEach((highSchool:HighSchool) => {
-                if(highSchool.type === graduateType) highschoolsOfType++
-            }))
-            if(graduateType === GraduateTypes.COMMUNICATIONS){
-                amountProduced += highschoolsOfType
-            }
-            else {
-                player.buildings.forEach((row, i) => row.forEach((building:Building, j) => {
-                    let teachers = getTeachersForPosition(i,j,player.teachers,Boards.Campus)
-                    switch(graduateType){
-                        case GraduateTypes.ENGLISH: 
-                            switch(building.id){
-                                case Buildings.ENGLISH_DEPT_S:
-                                    teachersOfType+= teachers.length
-                                    break
-                                case Buildings.ENGLISH_DEPT_L: 
-                                    teachersOfType+= teachers.length
-                                    break
-                            }
-                            break
-                        case GraduateTypes.COMPSCI: 
-                            switch(building.id){
-                                case Buildings.COMP_SCI_S:
-                                    teachersOfType+= teachers.length
-                                    break
-                                case Buildings.COMP_SCI_L: 
-                                    teachersOfType+= teachers.length
-                                    break
-                            }
-                            break
-                        case GraduateTypes.DOCTOR: 
-                            switch(building.id){
-                                case Buildings.MED:
-                                    teachersOfType+= teachers.length
-                                    break
-                            }
-                            break
-                        case GraduateTypes.LAWYER: 
-                            switch(building.id){
-                                case Buildings.LAW:
-                                    teachersOfType+= teachers.length
-                                    break
-                            }
-                            break
-                    }
-                }))
-            }
-            amountProduced = teachersOfType
+            let amountProduced = getProductionCount(player, graduateType)
             
             const grads = new Array<Graduate>(amountProduced).fill({
                 id: Date.now()+''+Math.random(),
                 type: graduateType,
-                value: getValue(graduateType)
+                value: getGradValue(graduateType)
             })
             //then produce a graduate.
             player.graduates = player.graduates.concat(grads)
@@ -250,14 +203,21 @@ export const onPlaceTeacher = (teacher:Teacher, board:Boards, x:number, y:number
         if(player.id === currentUser.id){
             player.teachers.forEach((pteacher) => {
                 if(teacher.id === pteacher.id){
-                    if(getTeachersForPosition(x,y,player.teachers, board).length === 0){
+                    if(player.buildings[x][y]){
+                        if(getTeachersForPosition(x,y,player.teachers, board).length<player.buildings[x][y].capacity){
+                            pteacher.x = x
+                            pteacher.y = y
+                            pteacher.board = board
+                            toast.show({message: 'Teacher Placed.'})
+                        }
+                        else toast.show({message: 'Space is full!'})
+                    }
+                    else {
                         pteacher.x = x
                         pteacher.y = y
                         pteacher.board = board
                         toast.show({message: 'Teacher Placed.'})
-                        //TODO check building capacity here also
                     }
-                    else toast.show({message: 'Space is full!'})
                 }
             })
         }
@@ -353,49 +313,4 @@ export const onCleanSession = () => {
     dispatch({
         type:   Constants.ReducerActions.MATCH_CLEANUP
     })
-}
-
-const prepareNextPlayer = (activeSession:Session, nextPlayerIndex:number) => {
-    let nextPlayer = activeSession.players[(nextPlayerIndex+1)%(activeSession.players.length)]
-    activeSession.activePlayerId = nextPlayer.id
-
-    if(activeSession.activePlayerId === activeSession.bossId){
-        //choose new role
-        activeSession.phase = Phases.CHOOSE_ROLES
-        //set boss to next player
-        nextPlayer = activeSession.players[(nextPlayerIndex+2)%(activeSession.players.length)]
-        activeSession.bossId = nextPlayer.id
-        activeSession.activePlayerId = nextPlayer.id
-        //if all players have a chosen role, reset roles and put cash on unused ones
-        let emptyRole = activeSession.players.find((player:Player) => !player.role)
-        if(!emptyRole){
-            activeSession.players.forEach((player:Player) => player.role = null)
-            activeSession.roles.forEach((role:Role) => {if(!role.picked) role.money++; role.picked=false})
-        }
-    }
-    return activeSession
-}
-
-const getInitialTiles = () => {
-    return new Array(4).fill(null).map((tile) => {
-        return getRandomTile()
-    })
-}
-
-export const getRandomTile = () => {
-    let types = Object.keys(GraduateTypes)
-    return GraduateTypes[types[Math.floor(Math.random()*types.length)] as any] as GraduateTypes
-}
-
-const getTeachersForPosition = (x:number,y:number, teachers:Array<Teacher>, board:Boards) => teachers.filter((teacher:Teacher) => teacher.x === x && teacher.y === y && teacher.board === board)
-
-const getValue = (type:GraduateTypes) => {
-    switch(type){
-        case GraduateTypes.COMMUNICATIONS: return 0
-        case GraduateTypes.ENGLISH: return 1
-        case GraduateTypes.COMPSCI: return 2
-        case GraduateTypes.LAWYER: return 3
-        case GraduateTypes.DOCTOR: return 4
-        default: return 0
-    }
 }

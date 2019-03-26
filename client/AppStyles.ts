@@ -25,8 +25,7 @@ export default {
         width: '2em',
         borderRadius: '1em',
         background: 'brown',
-        top:'5px',
-        left:'5px'
+        cursor:'pointer'
     },
     highSchoolTile: {
         com: {
@@ -44,11 +43,26 @@ export default {
         dr: {
             background: 'orange'
         },
+        quarry: {
+            background: 'gray'
+        },
+        random: {
+            background: 'pink'
+        }
     },
     emptyStudent: {
         height: '2em',
         width: '2em',
         borderRadius: '1em',
         border: '1px solid gray'
+    },
+    studentTile: {
+        height: '3em',
+        width: '3em',
+        border: '1px solid gray'
+    },
+    modal: {
+        maxHeight:'80vh',
+        overflow:'auto'
     },
 }

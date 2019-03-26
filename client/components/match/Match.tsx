@@ -2,6 +2,7 @@ import * as React from 'react'
 import { onMatchTick, onPlaceTeacher, onEndTurn, onSellGraduate, onProduceGraduates, onChooseRole } from '../uiManager/Thunks'
 import { Button, Card, Dialog, Tooltip, Position, Icon, Radio, RadioGroup, Popover } from '@blueprintjs/core'
 import { Phases } from '../../../enum'
+import { getProductionCount } from '../uiManager/Helpers'
 import Campus from './Campus'
 import HighSchools from './HighSchools'
 import AppStyles from '../../AppStyles';
@@ -151,7 +152,7 @@ export default class Match extends React.Component<Props, State> {
                 </div>
                 <Dialog
                     isOpen={this.state.showChooseRoles || this.props.activeSession.phase === Phases.CHOOSE_ROLES}
-                    style={styles.modal}
+                    style={AppStyles.modal}
                     onClose={() => this.setState({ showChooseRoles: false })}
                 >
                     <div style={{display:'flex'}}>
@@ -173,8 +174,8 @@ export default class Match extends React.Component<Props, State> {
                     </div>
                 </Dialog>
                 <Dialog
-                    isOpen={this.state.showFundraising}
-                    style={styles.modal}
+                    isOpen={this.state.showFundraising || this.props.activeSession.phase === Phases.FUNDRAISE}
+                    style={AppStyles.modal}
                     onClose={() => this.setState({ showFundraising: false })}
                 >   
                     <div style={{display:'flex'}}>
@@ -189,15 +190,16 @@ export default class Match extends React.Component<Props, State> {
                     </div>
                 </Dialog>
                 <Dialog
-                    isOpen={this.state.showGraduatePool}
-                    style={styles.modal}
+                    isOpen={this.state.showGraduatePool || this.props.activeSession.phase === Phases.PRODUCE}
+                    style={AppStyles.modal}
                     onClose={() => this.setState({ showGraduatePool: false })}
                 >
                     <div style={{display:'flex'}}>
                         <h4>Choose what kind of graduate you will make:</h4>
                         {Object.keys(this.props.activeSession.graduatePool).map((key:GraduateTypes) => 
                             <div style={(AppStyles.highSchoolTile as any)[key]} onClick={()=>this.onProduce(key)}>
-                                {(this.props.activeSession.graduatePool as any)[key]} left
+                                <h6>{(this.props.activeSession.graduatePool as any)[key]} left</h6>
+                                <h6>You will produce {getProductionCount(me, key)}</h6>
                             </div>
                         )}
                     </div>
@@ -209,7 +211,6 @@ export default class Match extends React.Component<Props, State> {
 }
 
 const styles = {
-    modal: {},
     frame: {
         padding:'1em',
         position:'relative' as 'relative'

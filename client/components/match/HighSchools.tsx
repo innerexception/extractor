@@ -1,7 +1,11 @@
 import * as React from 'react';
 import AppStyles from '../../AppStyles'
 import { Dialog } from '@blueprintjs/core'
-import { onTilePlaced, getRandomTile } from '../uiManager/Thunks'
+import { onTilePlaced } from '../uiManager/Thunks'
+import { getTeachersForPosition, getRandomTile } from '../uiManager/Helpers'
+import { GraduateTypes, Boards } from '../../../enum'
+import App from '../../App';
+
 
 interface Props {
     player: Player
@@ -31,14 +35,15 @@ export default class HighSchools extends React.Component<Props, State> {
                 <div>
                     {this.props.player.highSchools[i].map((student, j) => 
                     student ? 
-                        <div onMouseUp={()=>this.props.onDropTeacher('highschools', i,j)} 
-                             style={styles.studentTile}>
-                            <div style={{...(AppStyles.highSchoolTile as any)[student.type]}}/>
-                            {getTeachersForPosition(i,j, this.props.player.teachers).map((teacher) => 
-                                    <div style={{...AppStyles.teacher, position:'absolute'}} 
+                        <div onMouseUp={()=>this.props.onDropTeacher(Boards.HighSchools, i,j)} 
+                             style={AppStyles.studentTile}>
+                            <div style={{...(AppStyles.highSchoolTile as any)[student.type], height:'100%', width:'100%'}}>
+                                {getTeachersForPosition(i,j, this.props.player.teachers, Boards.HighSchools).map((teacher) => 
+                                    <div style={{...AppStyles.teacher, zIndex:2}} 
                                          onMouseDown={()=>this.props.onTeacherSelected(teacher)}/>)}
+                            </div>
                         </div> :
-                        <div style={styles.studentTile}>
+                        <div style={AppStyles.studentTile}>
                             <div onClick={()=>this.setState({showTiles:true, tileX: i, tileY: j})} 
                                 style={AppStyles.emptyStudent}/>
                         </div>
@@ -47,37 +52,18 @@ export default class HighSchools extends React.Component<Props, State> {
             )}
             <Dialog
                     isOpen={this.state.showTiles}
-                    style={styles.modal}
+                    style={AppStyles.modal}
                     onClose={() => this.setState({ showTiles: false })}
                 >
                     <div>
                         {this.props.activeSession.highSchools.map((schoolType) => 
-                            <div style={{...(AppStyles.highSchoolTile as any)[schoolType], ...styles.studentTile}} onClick={()=>this.placeTile(schoolType)}/>    
+                            <div style={{...(AppStyles.highSchoolTile as any)[schoolType], ...AppStyles.studentTile}} onClick={()=>this.placeTile(schoolType)}/>    
                         )}
-                        <div style={{...styles.random, ...styles.studentTile}} onClick={()=>this.placeTile(getRandomTile())}/>    
+                        <div style={{...AppStyles.highSchoolTile.random, ...AppStyles.studentTile}} onClick={()=>this.placeTile(getRandomTile())}/>    
                         {this.props.activeSession.quarries > 0 && 
-                            <div style={{...styles.quarry, ...styles.studentTile}} onClick={()=>this.placeTile(GraduateTypes.TRADES)}/>} 
+                            <div style={{...AppStyles.highSchoolTile.quarry, ...AppStyles.studentTile}} onClick={()=>this.placeTile(GraduateTypes.TRADES)}/>} 
                     </div>
             </Dialog>
         </div>
-    }
-}
-
-const getTeachersForPosition = (x:number,y:number, teachers:Array<Teacher>) => 
-    teachers.filter((teacher) => teacher.x === x && teacher.y === y && teacher.board !== 'campus')
-
-const styles = {
-    modal: {},
-    studentTile: {
-        height:'3em',
-        width:'3em',
-        border: '1px solid',
-        position:'relative' as 'relative'
-    },
-    quarry: {
-        background: 'gray'
-    },
-    random: {
-        background: 'pink'
     }
 }

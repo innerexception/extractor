@@ -2,6 +2,9 @@ import * as React from 'react';
 import AppStyles from '../../AppStyles'
 import { Dialog } from '@blueprintjs/core'
 import { onBuild } from '../uiManager/Thunks'
+import { getTeachersForPosition } from '../uiManager/Helpers'
+import { Boards } from '../../../enum'
+
 
 interface Props {
     showBuildings: boolean
@@ -37,15 +40,19 @@ export default class Campus extends React.Component<Props,State> {
                 <div>
                     {this.props.player.buildings[i].map((building, j) => 
                     building ? 
-                        <div onMouseUp={()=>this.props.onDropTeacher('campus', i,j)} 
+                        <div onMouseUp={()=>this.props.onDropTeacher(Boards.Campus, i,j)} 
                              style={building.capacity > 1 ? styles.largeBuilding : styles.smallBuilding}>
-                            {building.name}
-                            {new Array(building.capacity).fill(null).map((empty) => 
-                                <div style={AppStyles.emptyStudent}/>    
-                            )}
-                            {getTeachersForPosition(i,j, this.props.player.teachers).map((teacher) => 
-                                    <div style={AppStyles.teacher} 
-                                         onMouseDown={()=>this.props.onTeacherSelected(teacher)}/>)}
+                            <h6>{building.name}</h6>
+                            <div style={{position:'relative'}}>
+                                {new Array(building.capacity).fill(null).map((empty) => 
+                                    <div style={AppStyles.emptyStudent}/>
+                                )}
+                                <div style={{position:'absolute', top:0}}>
+                                    {getTeachersForPosition(i,j, this.props.player.teachers, Boards.Campus).map((teacher) => 
+                                        <div style={AppStyles.teacher} 
+                                            onMouseDown={()=>this.props.onTeacherSelected(teacher)}/>)}
+                                </div>
+                            </div>
                         </div> :
                         <div onClick={()=>this.setState({showBuildings: true, buildX:i, buildY:j})} 
                              style={styles.emptyBuilding}/>
@@ -54,7 +61,7 @@ export default class Campus extends React.Component<Props,State> {
             )}
             <Dialog
                     isOpen={this.state.showBuildings}
-                    style={styles.modal}
+                    style={AppStyles.modal}
                     onClose={() => this.setState({ showBuildings: false })}
                 >
                     <div>
@@ -72,13 +79,7 @@ export default class Campus extends React.Component<Props,State> {
     }
 }
 
-const getTeachersForPosition = (x:number,y:number, teachers:Array<Teacher>) => 
-    teachers.filter((teacher:Teacher) => teacher.x === x && teacher.y === y && teacher.board === Boards.Campus)
-
 const styles = {
-    modal: {
-
-    },
     smallBuilding: {
         height: '2em',
         width:'4em',
