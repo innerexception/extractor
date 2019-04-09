@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { onLogin } from './uiManager/Thunks'
+import { TopBar, Button } from './Shared'
+import AppStyles from '../AppStyles';
 
 export default class Login extends React.Component {
     state = { name: '', sessionId: ''}
@@ -7,13 +9,16 @@ export default class Login extends React.Component {
     render(){
         return (
             <div>
-                <div style={styles.nameTag}>
-                    <h2 style={{textAlign:'center', paddingTop:'0.25em'}}>Hi, My Name Is:</h2>
-                    <input style={{...styles.loginInput, marginBottom:'0.5em'}} type="text" placeholder="Thought Leader" value={this.state.name} onChange={(e)=>this.setState({name:e.currentTarget.value})}/>
-                    <h3 style={{textAlign:'center', paddingTop:'0.25em'}}>My Team Is:</h3>
-                    <input style={{...styles.loginInput, marginBottom:'1em'}} type="text" placeholder="Smurf Party" value={this.state.sessionId} onChange={(e)=>this.setState({sessionId:e.currentTarget.value})}/>
+                <div style={{...AppStyles.window}}>
+                    {TopBar('MacBusiness')}
+                    <div style={{padding:'0.5em'}}>
+                        <h5 style={{margin:'0'}}>Name</h5>
+                        <input style={{...styles.loginInput, marginBottom:'0.5em'}} type="text" value={this.state.name} onChange={(e)=>this.setState({name:e.currentTarget.value})}/>
+                        <h5 style={{margin:'0'}}>Match Name</h5>
+                        <input style={{...styles.loginInput, marginBottom:'1em'}} type="text" value={this.state.sessionId} onChange={(e)=>this.setState({sessionId:e.currentTarget.value})}/>
+                        {Button(this.state.name && this.state.sessionId as any, ()=>onLogin(getUser(this.state.name), this.state.sessionId), 'Ok')}
+                    </div>
                 </div>
-                {this.state.name && <div style={styles.login} onClick={()=>onLogin(getUser(this.state.name), this.state.sessionId)}>Go Do Buisness -></div>}
             </div>
         )
     }
@@ -25,9 +30,9 @@ const getUser = (name:string) => {
 
 const styles = {
     loginInput: {
+        border: '1px solid',
         boxShadow: 'none',
-        border: 'none',
-        padding: '1em',
+        padding:'3px'
     },
     nameTag: {
         background: 'red',

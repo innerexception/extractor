@@ -41,7 +41,7 @@ export default class Campus extends React.Component<Props,State> {
                     {this.props.player.buildings[i].map((building, j) => 
                     building ? 
                         <div onMouseUp={()=>this.props.onDropTeacher(Boards.Campus, i,j)} 
-                             style={building.capacity > 1 ? styles.largeBuilding : styles.smallBuilding}>
+                             style={{...(building.capacity > 1 ? styles.largeBuilding : styles.smallBuilding), ...styles.building}}>
                             <h6>{building.name}</h6>
                             <div style={{position:'relative'}}>
                                 {new Array(building.capacity).fill(null).map((empty) => 
@@ -55,7 +55,7 @@ export default class Campus extends React.Component<Props,State> {
                             </div>
                         </div> :
                         <div onClick={()=>this.setState({showBuildings: true, buildX:i, buildY:j})} 
-                             style={styles.emptyBuilding}/>
+                             style={styles.building}/>
                     )}
                 </div>
             )}
@@ -71,7 +71,7 @@ export default class Campus extends React.Component<Props,State> {
                                             style={{pointerEvents: this.props.player.money >= building.cost ? 'all' : 'none'}}>
                                             {building.name} left: {building.count} cost: {building.cost}
                                        </div>
-                            else return <div style={styles.emptyBuilding}/>
+                            else return <div style={styles.building}/>
                         })}
                     </div>
             </Dialog>
@@ -81,23 +81,17 @@ export default class Campus extends React.Component<Props,State> {
 
 const styles = {
     smallBuilding: {
-        height: '2em',
-        width:'4em',
-        border: '1px solid blue',
-        padding:'2px',
-        position: 'relative' as 'relative'
+        backgroundColor: AppStyles.colors.grey1
     },
     largeBuilding: {
-        height: '2em',
-        width:'4em',
-        border: '1px solid purple',
-        padding:'2px',
-        position: 'relative' as 'relative'
+        backgroundColor: AppStyles.colors.grey2
     },
-    emptyBuilding: {
+    building: {
         height: '2em',
         width:'4em',
         border: '1px solid gray',
-        padding:'2px'
+        padding:'2px',
+        position: 'relative' as 'relative',
+        backgroundColor: AppStyles.colors.grey3
     }
 }

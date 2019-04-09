@@ -1,7 +1,11 @@
-@import url('https://fonts.googleapis.com/css?family=Architects+Daughter|Permanent+Marker');
-
-/* font-family: 'Permanent Marker', cursive;
-font-family: 'Architects Daughter', cursive; */
+@font-face {
+  font-family: 'ChiTown';
+  src: url('./assets/ChiKareGo.ttf')  format('truetype')
+}
+@font-face {
+  font-family: 'Casual';
+  src: url('./assets/Comicoro.ttf')  format('truetype')
+}
 
 html {
     background: '#e5e5e5';
@@ -9,12 +13,12 @@ html {
 }
 
 body {
-  font-family: 'Architects Daughter', cursive;
-  font-size: calc(16px + 1vw);
+  font-family: 'ChiTown';
+  font-size: calc(14px + 1vw);
 }
 
-.alternate-font{
-    font-family: 'Permanent Marker', cursive
+h1,h2,h3,h4,h5,h6{
+  margin:0
 }
 
 @keyframes shake {
