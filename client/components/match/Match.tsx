@@ -1,13 +1,13 @@
 import * as React from 'react'
 import { onMatchTick, onPlaceTeacher, onEndTurn, onSellGraduate, onProduceGraduates, onChooseRole } from '../uiManager/Thunks'
-import { Button, Card, Dialog, Tooltip, Position, Icon, Radio, RadioGroup, Popover } from '@blueprintjs/core'
+import { Card, Dialog, Tooltip, Position, Icon, Radio, RadioGroup, Popover } from '@blueprintjs/core'
 import { Phases } from '../../../enum'
 import { getProductionCount } from '../uiManager/Helpers'
 import Campus from './Campus'
 import HighSchools from './HighSchools'
 import AppStyles from '../../AppStyles';
 import { toast } from '../uiManager/toast'
-import { TopBar } from '../Shared'
+import { TopBar, LightButton, Button } from '../Shared'
 
 interface Props {
     currentUser: LocalUser
@@ -15,7 +15,6 @@ interface Props {
 }
 
 interface State {
-    isActive: boolean
     interval: NodeJS.Timeout | number
     draggingTeacher: Teacher | null
     sellingGraduate: Graduate | null
@@ -31,7 +30,6 @@ export default class Match extends React.Component<Props, State> {
 
     state = {
         interval: 0,
-        isActive: false,
         draggingTeacher: null as null,
         sellingGraduate: null as null,
         showFundraising: false,
@@ -43,7 +41,7 @@ export default class Match extends React.Component<Props, State> {
     }
 
     componentDidMount = () => {
-        this.setState({interval: this.state.isActive ? setInterval(()=>this.checkTimer(), 1000) : 0})
+        // this.setState({interval: this.props.activeSession.activePlayerId === this.props.currentUser.id ? setInterval(()=>this.checkTimer(), 1000) : 0})
     }
 
     dropTeacher = (board:Boards, x:number, y:number) => {
@@ -98,70 +96,75 @@ export default class Match extends React.Component<Props, State> {
 
         return (
             <div style={styles.frame} onMouseUp={()=>this.setState({draggingTeacher:null})}>
-                <h4>{this.props.currentUser.name} {this.props.activeSession.bossId === me.id ? ' paid the cost to be the boss': ''}</h4>
-                <h4>{activePlayer.name+ " is currently "+this.props.activeSession.phase}</h4>
-                {activePlayer.id !== this.props.currentUser.id && <div style={styles.disabled}/>}
-                <div style={{display:'flex'}}>
-                    <Campus player={me} 
-                            activeSession={this.props.activeSession}
-                            onTeacherSelected={(teacher:Teacher)=>this.setState({draggingTeacher: teacher})}
-                            onDropTeacher={(board:Boards, x:number, y:number)=>this.dropTeacher(board, x, y)}
-                            showBuildings={this.state.showBuildings}
-                            isActive={(this.props.activeSession.phase === Phases.BUILD || this.props.activeSession.phase === Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
-                    <HighSchools player={me} 
-                                 activeSession={this.props.activeSession}
-                                 onTeacherSelected={(teacher:Teacher)=>this.setState({draggingTeacher: teacher})}
-                                 onDropTeacher={(board:Boards, x:number, y:number)=>this.dropTeacher(board, x, y)}
-                                 isActive={(this.props.activeSession.phase === Phases.RECRUIT_STUDENTS || this.props.activeSession.phase === Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
-                    {me.role ? 
+                {TopBar('MacAdmins')}
+                <div style={{padding:'0.5em'}}>
+                    <div style={{display:'flex', justifyContent:'space-around'}}>
+                        {activePlayer.id !== me.id && 
                         <div style={styles.roleCard}>
-                            <h4>{me.role.name}</h4>
+                            <h4>{activePlayer.name+' is currently ' + activePlayer.role.name}</h4>
+                            <hr/>
+                            <h5>{activePlayer.role.actionDescription}</h5>
+                            <h5>{activePlayer.role.bonusDescription}</h5>
+                        </div>}
+                        {me.role ? 
+                        <div style={styles.roleCard}>
+                            <h4>You are {me.role.name}</h4>
                             <hr/>
                             <h5>{me.role.actionDescription}</h5>
                             <h5>{me.role.bonusDescription}</h5>
                         </div> : 
-                        <div>no role yet</div>}
-                    <div>
-                        <h5>VP: {me.vp}</h5>
-                        <h5>$: {me.money}</h5>
-                        <h5>Graduates: </h5>
-                        {me.graduates.map((graduate) => 
-                            <div style={this.props.activeSession.phase === Phases.FUNDRAISE ? AppStyles.flex : AppStyles.disabledSection}>
-                                <div style={(AppStyles.highSchoolTile as any)[graduate.type]} onClick={()=>this.setState({sellingGraduate: graduate, showFundraising: true})}/>
-                                <h5>{graduate.type} : {me.graduates.filter((mgraduate) => mgraduate.type === graduate.type).length}</h5>
-                            </div>)}
-                        <div style={this.props.activeSession.phase === Phases.RECRUIT_TEACHERS && activePlayer.id === me.id ? AppStyles.flex : AppStyles.disabledSection}>
+                        <div><h4>You haven't picked yet</h4></div>}
+                        <div>
+                            <h5>VP {me.vp}</h5>
+                            <h5>$ {me.money}</h5>
+                            <h6>Graduates: </h6>
+                            {me.graduates.map((graduate) => 
+                                <div style={this.props.activeSession.phase === Phases.FUNDRAISE ? AppStyles.flex : AppStyles.disabledSection}>
+                                    <div style={(AppStyles.highSchoolTile as any)[graduate.type]} onClick={()=>this.setState({sellingGraduate: graduate, showFundraising: true})}/>
+                                    <h5>{graduate.type} : {me.graduates.filter((mgraduate) => mgraduate.type === graduate.type).length}</h5>
+                                </div>)}
                             <h6>Unassigned Teachers:</h6>
-                            {me.teachers.filter((teacher)=>!teacher.board).map((teacher) => 
-                                <div style={AppStyles.teacher} onMouseDown={()=>this.setState({draggingTeacher: teacher})}/>)}
+                            <div style={this.props.activeSession.phase === Phases.RECRUIT_TEACHERS && activePlayer.id === me.id ? AppStyles.flex : AppStyles.disabledSection}>
+                                {me.teachers.filter((teacher)=>!teacher.board).map((teacher) => 
+                                    <div style={AppStyles.teacher} onMouseDown={()=>this.setState({draggingTeacher: teacher})}/>)}
+                            </div>
                         </div>
                     </div>
-                    <div style={styles.choiceBtn} onClick={this.endTurn}>End Turn</div>
-                    <div style={{marginTop:'0.5em', marginBottom:'0.5em'}}>
-                        <h6 style={{margin:0}}>Turn</h6>
-                        <div style={{width: '100%', height:'0.5em', border: '1px solid'}}>
-                            <div style={{width: (100-((this.props.activeSession.ticks / this.props.activeSession.turnTickLimit)*100))+'%', background:'orange', height:'100%', transition:'width 250ms'}}/>
-                        </div>
+                    <div style={styles.board}>
+                        <Campus player={me} 
+                                activeSession={this.props.activeSession}
+                                onTeacherSelected={(teacher:Teacher)=>this.setState({draggingTeacher: teacher})}
+                                onDropTeacher={(board:Boards, x:number, y:number)=>this.dropTeacher(board, x, y)}
+                                showBuildings={this.state.showBuildings}
+                                isActive={(this.props.activeSession.phase === Phases.BUILD || this.props.activeSession.phase === Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
+                        <HighSchools player={me} 
+                                    activeSession={this.props.activeSession}
+                                    onTeacherSelected={(teacher:Teacher)=>this.setState({draggingTeacher: teacher})}
+                                    onDropTeacher={(board:Boards, x:number, y:number)=>this.dropTeacher(board, x, y)}
+                                    isActive={(this.props.activeSession.phase === Phases.RECRUIT_STUDENTS || this.props.activeSession.phase === Phases.RECRUIT_TEACHERS) && activePlayer.id === me.id}/>
                     </div>
-                </div>
-                <div style={{display:'flex'}}>
-                    <div style={styles.toggleButton} onClick={()=>this.setState({showJobSlots: !this.state.showJobSlots})}>Show/Hide Industry Job Slots</div>
-                    <div style={styles.toggleButton} onClick={()=>this.setState({showBuildings: !this.state.showBuildings})}>Show/Hide Buildings</div>
-                    <div style={styles.toggleButton} onClick={()=>this.setState({showGraduatePool: !this.state.showGraduatePool})}>Show/Hide Graduate Pool</div>
-                    <div style={styles.toggleButton} onClick={()=>this.setState({showStudentTiles: !this.state.showStudentTiles})}>Show/Hide Student Tiles</div>
-                    <div style={styles.toggleButton} onClick={()=>this.setState({showFundraising: !this.state.showFundraising})}>Show/Hide Fundraising</div>
+                    <div style={{display:'flex', justifyContent:'space-between', padding:'0.5em'}}>
+                        {LightButton(true, ()=>this.setState({showJobSlots: !this.state.showJobSlots}), 'Industry Job Slots')}
+                        {LightButton(true, ()=>this.setState({showBuildings: !this.state.showBuildings}), 'Buildings')}
+                        {LightButton(true, ()=>this.setState({showGraduatePool: !this.state.showGraduatePool}), 'Graduate Pool')}
+                        {LightButton(true, ()=>this.setState({showStudentTiles: !this.state.showStudentTiles}), 'High Schools')}
+                        {LightButton(true, ()=>this.setState({showFundraising: !this.state.showFundraising}), 'Fundraisers')}
+                        {Button(true, this.endTurn, 'End Turn')}
+                    </div>
                 </div>
                 <div style={{...styles.modal, display: this.state.showChooseRoles || this.props.activeSession.phase === Phases.CHOOSE_ROLES ? 'flex':'none'}}>
                     {TopBar('Choose Roles')}
-                    <div style={{display:'flex', height:'calc(100% - 1em)'}}>
+                    <div style={{display:'flex', height:'calc(100% - 1em)', flexDirection:'column', alignItems:'center'}}>
                         <div style={styles.leftRoleList}>
                             {activePlayer.name + ' is picking...'}
-                            {this.props.activeSession.players.filter((player) => player.id !== activePlayer.id).map((player) => 
-                                <div>{player.name + ': '+ (player.role ? player.role.name : 'Not picked')}</div>
-                            )}
+                            <div style={{display:'flex'}}>
+                                {this.props.activeSession.players.filter((player) => player.id !== activePlayer.id).map((player) => 
+                                    <div>{player.name + ': '+ (player.role ? player.role.name : 'Not picked')}</div>
+                                )}
+                            </div>
                         </div>
                         {activePlayer.id === this.props.currentUser.id && 
-                        <div style={{overflow:'auto', width:'66%'}}>
+                        <div style={{overflow:'auto', borderTop:'1px solid'}}>
                             {this.props.activeSession.roles.filter(this.roleNotPicked).map((role:Role) => 
                                 <div style={styles.toggleButton} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession)}>
                                     <div style={{width:'60%'}}>
@@ -211,11 +214,18 @@ export default class Match extends React.Component<Props, State> {
 
 const styles = {
     frame: {
-        padding:'1em',
-        position:'relative' as 'relative'
+        backgroundImage: 'url('+require('../../assets/tiny2.png')+')',
+        backgroundRepeat: 'repeat',
+        borderRadius:'3px',
+        margin:'1em',
+        border:'1px solid'
+    },
+    board: {
+        display:'flex', padding:'0.5em',
+        justifyContent:'space-around'
     },
     modal: {
-        backgroundImage: 'url('+require('../../assets/tiny2.png')+')',
+        backgroundImage: 'url('+require('../../assets/whiteTile.png')+')',
         backgroundRepeat: 'repeat',
         position:'absolute' as 'absolute',
         top:0, left:0, right:0, bottom:0,
@@ -260,6 +270,5 @@ const styles = {
         flexDirection:'column' as 'column',
         justifyContent:'space-around',
         padding:'0.5em',
-        width:'33%'
     }
 }

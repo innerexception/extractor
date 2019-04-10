@@ -21,9 +21,9 @@ export default {
         display:'flex'
     },
     teacher: {
-        height: '2em',
-        width: '2em',
-        borderRadius: '1em',
+        height: '1em',
+        width: '1em',
+        borderRadius: '0.6em',
         background: 'brown',
         cursor:'pointer'
     },
@@ -51,9 +51,9 @@ export default {
         }
     },
     emptyStudent: {
-        height: '2em',
-        width: '2em',
-        borderRadius: '1em',
+        height: '1em',
+        width: '1em',
+        borderRadius: '0.5em',
         border: '1px solid gray'
     },
     studentTile: {
@@ -85,12 +85,10 @@ export default {
         border: '3px solid',
         borderRadius: '5px',
         background:'white',
-        width:'50%',
-        marginLeft:'calc(50% - 0.5em)',
         padding:'2px'
     },
     buttonInner: {
-        border:'1px solid', borderRadius: '3px', paddingLeft:'5px', paddingRight:'5px' ,
+        border:'1px solid', borderRadius: '3px', padding:'5px' ,
         color: '#252525', 
         background:'white',
         cursor:'pointer'

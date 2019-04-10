@@ -287,8 +287,11 @@ export const onEndTurn = (currentUser:LocalUser, activeSession:Session) => {
 }
 
 export const onMatchTick = (session:Session) => {
+    session.ticks++
+    console.log(session.ticks)
     server.publishMessage({
         type:   Constants.ReducerActions.MATCH_UPDATE,
+        session,
         sessionId: session.sessionId
     })
 }

@@ -1,5 +1,6 @@
 module.exports = {
-  ApiUrl: 'ws://localhost:1337',
+  ApiUrl: 'ws://localhost:3333',
+  // ApiUrl: 'wss://services.cryptonomical.com:3333'
 
   ReducerActions: {
     PLAYER_AVAILABLE: 'ma',

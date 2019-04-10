@@ -48,7 +48,8 @@ const styles = {
         height: '100vh',
         display:'flex', justifyContent:'center', alignItems:'center',
         backgroundImage: 'url('+require('../../assets/tiny.png')+')',
-        backgroundRepeat: 'repeat'
+        backgroundRepeat: 'repeat',
+        position:'relative' as 'relative'
     },
     dot: {
         height:'0.5em',

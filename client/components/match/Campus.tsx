@@ -35,7 +35,7 @@ export default class Campus extends React.Component<Props,State> {
     }
 
     render(){
-        return <div style={this.props.isActive ? AppStyles.flex : AppStyles.disabledSection}>
+        return <div style={{...(this.props.isActive ? AppStyles.flex : AppStyles.disabledSection), ...{alignItems:'center'}}}>
             {new Array(3).fill(null).map((row,i) => 
                 <div>
                     {this.props.player.buildings[i].map((building, j) => 
@@ -55,7 +55,7 @@ export default class Campus extends React.Component<Props,State> {
                             </div>
                         </div> :
                         <div onClick={()=>this.setState({showBuildings: true, buildX:i, buildY:j})} 
-                             style={styles.building}/>
+                             style={{...styles.building, cursor: 'pointer'}}/>
                     )}
                 </div>
             )}
@@ -89,9 +89,10 @@ const styles = {
     building: {
         height: '2em',
         width:'4em',
-        border: '1px solid gray',
+        border: '1px dashed gray',
         padding:'2px',
+        borderRadius:'3px',
         position: 'relative' as 'relative',
-        backgroundColor: AppStyles.colors.grey3
+        backgroundColor: AppStyles.colors.white
     }
 }

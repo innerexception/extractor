@@ -10,7 +10,7 @@ export default class Login extends React.Component {
         return (
             <div>
                 <div style={{...AppStyles.window}}>
-                    {TopBar('MacBusiness')}
+                    {TopBar('MacAdmins')}
                     <div style={{padding:'0.5em'}}>
                         <h5 style={{margin:'0'}}>Name</h5>
                         <input style={{...styles.loginInput, marginBottom:'0.5em'}} type="text" value={this.state.name} onChange={(e)=>this.setState({name:e.currentTarget.value})}/>

@@ -24,7 +24,7 @@ export default class Lobby extends React.Component<Props> {
     render(){
         return (
             <div style={{...AppStyles.window}}>
-                {TopBar('MacAdmin')}
+                {TopBar('MacAdmins')}
                 <div style={{padding:'0.5em', minWidth:'400px'}}>
                     <h5>{this.props.activeSession.sessionId} Lobby</h5>
                     <div style={{marginBottom:'1em', alignItems:'center', overflow:'auto', maxHeight:'66vh'}}>
