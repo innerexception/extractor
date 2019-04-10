@@ -7,6 +7,7 @@ import Campus from './Campus'
 import HighSchools from './HighSchools'
 import AppStyles from '../../AppStyles';
 import { toast } from '../uiManager/toast'
+import { TopBar } from '../Shared'
 
 interface Props {
     currentUser: LocalUser
@@ -150,34 +151,32 @@ export default class Match extends React.Component<Props, State> {
                     <div style={styles.toggleButton} onClick={()=>this.setState({showStudentTiles: !this.state.showStudentTiles})}>Show/Hide Student Tiles</div>
                     <div style={styles.toggleButton} onClick={()=>this.setState({showFundraising: !this.state.showFundraising})}>Show/Hide Fundraising</div>
                 </div>
-                <Dialog
-                    isOpen={this.state.showChooseRoles || this.props.activeSession.phase === Phases.CHOOSE_ROLES}
-                    style={AppStyles.modal}
-                    onClose={() => this.setState({ showChooseRoles: false })}
-                >
-                    <div style={{display:'flex'}}>
-                        <div>
+                <div style={{...styles.modal, display: this.state.showChooseRoles || this.props.activeSession.phase === Phases.CHOOSE_ROLES ? 'flex':'none'}}>
+                    {TopBar('Choose Roles')}
+                    <div style={{display:'flex', height:'calc(100% - 1em)'}}>
+                        <div style={styles.leftRoleList}>
                             {activePlayer.name + ' is picking...'}
                             {this.props.activeSession.players.filter((player) => player.id !== activePlayer.id).map((player) => 
                                 <div>{player.name + ': '+ (player.role ? player.role.name : 'Not picked')}</div>
                             )}
                         </div>
                         {activePlayer.id === this.props.currentUser.id && 
-                        <div>
+                        <div style={{overflow:'auto', width:'66%'}}>
                             {this.props.activeSession.roles.filter(this.roleNotPicked).map((role:Role) => 
                                 <div style={styles.toggleButton} onClick={()=>onChooseRole(role, this.props.currentUser, this.props.activeSession)}>
-                                    <h6>{role.name}</h6>
-                                    <h6>${role.money}</h6> 
-                                    <h6>{role.actionDescription}</h6> 
+                                    <div style={{width:'60%'}}>
+                                        <h6>{role.name}:</h6>
+                                        <h6>{role.actionDescription}</h6> 
+                                    </div>
+                                    <div>
+                                        <h6>Pick Bonus: ${role.money}</h6> 
+                                    </div>
                                 </div>)}
                         </div>}
                     </div>
-                </Dialog>
-                <Dialog
-                    isOpen={this.state.showFundraising || this.props.activeSession.phase === Phases.FUNDRAISE}
-                    style={AppStyles.modal}
-                    onClose={() => this.setState({ showFundraising: false })}
-                >   
+                </div>
+                <div style={{...styles.modal, display: this.state.showFundraising || this.props.activeSession.phase === Phases.FUNDRAISE ? 'flex':'none'}}>
+                    {TopBar('Fundraiser')}
                     <div style={{display:'flex'}}>
                         <h4>Shakedown a grad for money</h4>
                         <div>
@@ -188,7 +187,7 @@ export default class Match extends React.Component<Props, State> {
                             )}
                         </div>
                     </div>
-                </Dialog>
+                </div>
                 <Dialog
                     isOpen={this.state.showGraduatePool || this.props.activeSession.phase === Phases.PRODUCE}
                     style={AppStyles.modal}
@@ -215,6 +214,19 @@ const styles = {
         padding:'1em',
         position:'relative' as 'relative'
     },
+    modal: {
+        backgroundImage: 'url('+require('../../assets/tiny2.png')+')',
+        backgroundRepeat: 'repeat',
+        position:'absolute' as 'absolute',
+        top:0, left:0, right:0, bottom:0,
+        maxWidth: '20em',
+        maxHeight: '20em',
+        border: '1px solid',
+        borderRadius: '5px',
+        margin: 'auto',
+        flexDirection: 'column' as 'column',
+        justifyContent: 'flex-start'
+    },
     choiceBtn: {
         margin: 0,
         cursor: 'pointer',
@@ -235,8 +247,19 @@ const styles = {
         cursor:'pointer',
         border:'1px solid',
         borderRadius: '3px',
-        padding:'0.5em'
+        padding:'0.5em',
+        display:'flex',
+        justifyContent:'space-between',
+        background: 'white',
+        margin:'0.5em'
     },
     emptyFundSpot: {},
-    roleCard: {}
+    roleCard: {},
+    leftRoleList: {
+        display:'flex',
+        flexDirection:'column' as 'column',
+        justifyContent:'space-around',
+        padding:'0.5em',
+        width:'33%'
+    }
 }
